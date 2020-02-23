@@ -17,10 +17,13 @@
       "@hapi/hapi": "^19.1.1",
       "@hapi/iron": "^6.0.0",
       "@types/hapi__bell": "^11.0.0",
+      "@types/joi": "^14.3.4",
+      "@types/jsonwebtoken": "^8.3.7",
       "add": "^2.0.6",
       "dotenv": "latest",
       "eslint": "^6.6.0",
       "hapi-auth-jwt2": "^9.0.1",
+      "joi": "latest",
       "jsonwebtoken": "^8.5.1",
       "pg": "^7.18.1",
       "reflect-metadata": "^0.1.10",
@@ -31,6 +34,8 @@
    "devDependencies": {
       "@types/hapi__hapi": "^19.0.1",
       "@types/node": "^8.0.29",
+      "@typescript-eslint/eslint-plugin": "^2.6.0",
+      "@typescript-eslint/parser": "^2.18.0",
       "eslint": "^6.6.0",
       "eslint-config-airbnb": "^17.1.0",
       "eslint-config-airbnb-typescript": "^4.0.0",
@@ -41,8 +46,6 @@
       "eslint-plugin-jsx-a11y": "^6.2.3",
       "eslint-plugin-prettier": "^3.1.0",
       "eslint-plugin-react": "^7.16.0",
-      "@typescript-eslint/eslint-plugin": "^2.6.0",
-      "@typescript-eslint/parser": "^2.18.0",
       "prettier": "1.19.1"
    }
 }

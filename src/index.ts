@@ -9,24 +9,28 @@ import Authentication from './auth';
 config();
 
 const server = new Hapi.Server({
-    debug: {request: ['error']},
-    port: process.env.PORT,
+  debug: {request: ['error']},
+  host: '127.0.0.1',
+  port: process.env.PORT,
+  routes: {
+    "cors": true
+  },
 });
 
 process.on("uncaughtException", (error: Error) => {
-    console.error(`uncaughtException ${error.message}`);
+  console.error(`uncaughtException ${error.message}`);
 });
 
 process.on("unhandledRejection", (reason: any) => {
-    console.error(`unhandledRejection ${reason}`);
+  console.error(`unhandledRejection ${reason}`);
 });
 
-server.route(routes);
 Authentication.register(server)
-    .then(() => server.start())
-    .then(() => createConnection())
-    .then(() => console.log('Started  at', process.env.PORT))
-    .catch((err) => {
-        console.error(err);
-        process.exit(1)
-    });
+  .then(() => server.register(routes, {routes: {prefix: '/api'}}))
+  .then(() => server.start())
+  .then(() => createConnection())
+  .then(() => console.log('Started  at', process.env.PORT))
+  .catch((err) => {
+    console.error(err);
+    process.exit(1)
+  });

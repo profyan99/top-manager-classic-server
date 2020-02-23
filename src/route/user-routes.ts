@@ -1,21 +1,42 @@
 import UserService from '../service/user-service';
+import UserValidator from './validator/user-validator';
 
-export default [
-    {
-        method: 'GET',
-        path: '/me',
-        handler(request, h) {
-            return UserService.getCurrentUser(request.auth.credentials.user);
-        },
-        options: {
-            auth: 'false',
-        }
+const userRoutes = [
+  {
+    method: 'POST',
+    path: '/signup',
+    async handler(request, h) {
+      await UserService.addUser(request, request.payload);
+      return h.response();
     },
-    {
-        method: 'GET',
-        path: '/me',
-        handler(request, h) {
-            return UserService.getCurrentUser(request.auth.credentials.user);
-        }
+    options: {
+      auth: false,
+      validate: {
+        payload: UserValidator.addUser,
+      },
+    },
+  },
+  {
+    method: 'POST',
+    path: '/signin',
+    async handler(request, h) {
+      await UserService.loginUser(request.payload);
+      return h.response();
+    },
+    options: {
+      auth: false,
+      validate: {
+        payload: UserValidator.loginUser,
+      },
+    },
+  },
+  {
+    method: 'GET',
+    path: '/profile',
+    handler(request) {
+      return UserService.getCurrentUser(request.auth.credentials.user);
     }
-]
+  }
+];
+
+export default userRoutes;

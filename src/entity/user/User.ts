@@ -5,58 +5,59 @@ import {UserGameStats} from "./UserGameStats";
 @Entity()
 export class User {
 
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    email: string;
+  @Column()
+  email: string;
 
-    @Column({unique: true})
-    userName: string;
+  @Column({unique: true})
+  userName: string;
 
-    @Column()
-    ip: string;
+  @Column()
+  ip: string;
 
-    @CreateDateColumn({type: 'date'})
-    registerDate: string;
+  @CreateDateColumn({type: 'date'})
+  registerDate: string;
 
-    @Column()
-    lastLogIn: Date;
+  @Column()
+  lastLogIn: Date;
 
-    @Column()
-    password: string;
+  @Column()
+  password: string;
 
-    @Column()
-    avatar: string;
+  @Column()
+  refreshToken: string;
 
-    @Column({
-        type: "enum",
-        enum: UserRole,
-        array: true,
-    })
-    roles: UserRole[];
+  @Column()
+  avatar: string;
 
-    @Column(type => UserGameStats)
-    gameStats: UserGameStats;
+  @Column({default: false})
+  socialUser: boolean;
+
+  @Column({
+    type: "enum",
+    enum: UserRole,
+    array: true,
+  })
+  roles: UserRole[];
+
+  @Column(type => UserGameStats)
+  gameStats: UserGameStats;
 
 
-    constructor({
-                    id, email, userName, ip, registerDate,
-                    lastLogIn, password, avatar, roles, gameStats
-                }:
-                    {
-                        id?: number, email: string, userName: string, ip: string, registerDate?: string, lastLogIn: Date,
-                        password: string, avatar: string, roles: UserRole[], gameStats: UserGameStats
-                    }) {
-        this.id = id;
-        this.email = email;
-        this.userName = userName;
-        this.ip = ip;
-        this.registerDate = registerDate;
-        this.lastLogIn = lastLogIn;
-        this.password = password;
-        this.avatar = avatar;
-        this.roles = roles;
-        this.gameStats = gameStats;
+  constructor(data?: { email; userName; ip; lastLogIn; password; avatar; roles; gameStats; socialUser; refreshToken }) {
+    if (data) {
+      this.email = data.email;
+      this.userName = data.userName;
+      this.ip = data.ip;
+      this.lastLogIn = data.lastLogIn;
+      this.password = data.password;
+      this.avatar = data.avatar;
+      this.roles = data.roles;
+      this.gameStats = data.gameStats;
+      this.socialUser = data.socialUser;
+      this.refreshToken = data.refreshToken;
     }
+  }
 }
