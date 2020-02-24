@@ -2,6 +2,7 @@ import * as Hapi from '@hapi/hapi';
 
 import authValidation from './auth-validation';
 import authRoutes from '../route/auth-routes';
+import {ServerRoute} from "@hapi/hapi";
 
 const register = async (server: Hapi.Server) => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -49,7 +50,7 @@ const register = async (server: Hapi.Server) => {
   });
 
   server.auth.default("jwt");
-  server.route(authRoutes);
+  server.route(authRoutes as ServerRoute[]);
 };
 
 export default {

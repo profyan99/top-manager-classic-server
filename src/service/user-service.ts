@@ -1,5 +1,5 @@
 import * as Boom from '@hapi/boom';
-import * as Iron from '@hapi/iron';
+import * as bcrypt from 'bcrypt';
 
 import {User} from "../entity/user/User";
 import {UserRole} from "../entity/user/UserRole";
@@ -27,7 +27,7 @@ const getUserByUserName = (userName: string): Promise<User> => {
 };
 
 const getUserByRefreshToken = (refreshToken: string): Promise<User> => {
-  return getRepository(User).findOne({ where: { refreshToken } });
+  return getRepository(User).findOne({where: {refreshToken}});
 };
 
 const generateJWT = (user: User) => {
@@ -50,7 +50,7 @@ const addUser = async (request, {userName, email, password, avatar}) => {
       throw Boom.badRequest('Пользователь с таким email адресом уже существует.');
     }
 
-    const encryptedPassword = password ? await Iron.seal(password, process.env.PASSWORD_SALT, Iron.defaults) : password;
+    const encryptedPassword = password ? await bcrypt.hash(password, parseInt(process.env.PASSWORD_SALT_ROUNDS)) : password;
     const user: User = new User({
       email: email,
       userName: userName,
@@ -72,7 +72,7 @@ const loginUserThrowSocial = async (request, data: { userName; email; password; 
   const userRepository: UserRepository = getCustomRepository(UserRepository);
 
   let user: User = await getUserByUserName(data.userName);
-  if(!user) {
+  if (!user) {
     user = await addUser(request, data);
   }
 
@@ -102,7 +102,7 @@ const loginUser = async ({userName, password}) => {
     throw Boom.badRequest('Аккаунт зарегистрирован через социальные сети');
   }
 
-  if (await Iron.seal(password, process.env.PASSWORD_SALT, Iron.defaults) !== user.password) {
+  if (!(await bcrypt.compare(password, user.password))) {
     throw Boom.badRequest(loginError);
   }
 
