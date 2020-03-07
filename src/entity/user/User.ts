@@ -45,7 +45,6 @@ export class User {
   @Column(type => UserGameStats)
   gameStats: UserGameStats;
 
-
   constructor(data?: { email; userName; ip; lastLogIn; password; avatar; roles; gameStats; socialUser; refreshToken }) {
     if (data) {
       this.email = data.email;

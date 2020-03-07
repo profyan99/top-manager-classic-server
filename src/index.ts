@@ -5,6 +5,7 @@ import {config} from 'dotenv';
 
 import routes from './route';
 import Authentication from './auth';
+import {registerWebsocketServer} from "./service/websocket-service";
 
 config();
 
@@ -27,6 +28,7 @@ process.on("unhandledRejection", (reason: any) => {
 
 Authentication.register(server)
   .then(() => server.register(routes, {routes: {prefix: '/api'}}))
+  .then(() => registerWebsocketServer(server))
   .then(() => server.start())
   .then(() => createConnection())
   .then(() => console.log('Started  at', process.env.PORT))

@@ -18,6 +18,10 @@ const getCurrentUser = (user: User) => {
   };
 };
 
+const isAdmin = (user: User) => {
+  return user.roles.includes(UserRole.ADMIN);
+};
+
 const getUserById = (id: number): Promise<User> => {
   return getRepository(User).findOne({where: {id}});
 };
@@ -125,4 +129,5 @@ export default {
   generateJWT,
   loginUserThrowSocial,
   getUserByRefreshToken,
+  isAdmin,
 }

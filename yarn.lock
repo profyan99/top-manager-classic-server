@@ -40,6 +40,13 @@
   dependencies:
     "@hapi/hoek" "^9.0.0"
 
+"@hapi/address@^3.2.0":
+  version "3.2.2"
+  resolved "https://registry.npmjs.org/@hapi/address/-/address-3.2.2.tgz#b3511e4af42553be0957a2b93f8018526cc0c8ca"
+  integrity sha512-P29u4UoqZIFXw5vV43p7ciu/6+6OVINXOtHR4Q5xiufiZisVJXlckovN+l6wD/g9RQyhcztSg3viyLIoDlaTvg==
+  dependencies:
+    "@hapi/hoek" "^8.4.0"
+
 "@hapi/ammo@^5.0.1":
   version "5.0.1"
   resolved "https://registry.npmjs.org/@hapi/ammo/-/ammo-5.0.1.tgz#9d34560f5c214eda563d838c01297387efaab490"
@@ -66,6 +73,13 @@
     "@hapi/joi" "17.x.x"
     "@hapi/wreck" "17.x.x"
 
+"@hapi/boom@8.x.x":
+  version "8.0.1"
+  resolved "https://registry.npmjs.org/@hapi/boom/-/boom-8.0.1.tgz#13f1f2f2a3abfb0787c79e35e238c8aff6aa1661"
+  integrity sha512-SnBM2GzEYEA6AGFKXBqNLWXR3uNBui0bkmklYXX1gYtevVhDTy2uakwkSauxvIWMtlANGRhzChYg95If3FWCwA==
+  dependencies:
+    "@hapi/hoek" "8.x.x"
+
 "@hapi/boom@9.x.x", "@hapi/boom@^9.0.0":
   version "9.0.0"
   resolved "https://registry.npmjs.org/@hapi/boom/-/boom-9.0.0.tgz#28f9e77ecf2dea1fe3a8982b9d8827aa5137e33a"
@@ -85,6 +99,15 @@
   version "2.0.0"
   resolved "https://registry.npmjs.org/@hapi/bourne/-/bourne-2.0.0.tgz#5bb2193eb685c0007540ca61d166d4e1edaf918d"
   integrity sha512-WEezM1FWztfbzqIUbsDzFRVMxSoLy3HugVcux6KDDtTqzPsLE8NDRHfXvev66aH1i2oOKKar3/XDjbvh/OUBdg==
+
+"@hapi/call@6.x.x":
+  version "6.0.1"
+  resolved "https://registry.npmjs.org/@hapi/call/-/call-6.0.1.tgz#732cf62491c0a1d83527d898fd79296907559a23"
+  integrity sha512-33zfNNYndnHECXgVEb0gZClJcR2cmK88svB0ZY/ivzljOUCfHs6+r25uKJ8tzMZzzv3619BqQk/gurboTx2xcg==
+  dependencies:
+    "@hapi/address" "^3.2.0"
+    "@hapi/boom" "8.x.x"
+    "@hapi/hoek" "8.x.x"
 
 "@hapi/call@8.x.x":
   version "8.0.0"
@@ -170,6 +193,11 @@
     "@hapi/hoek" "9.x.x"
     "@hapi/joi" "17.x.x"
 
+"@hapi/hoek@8.x.x", "@hapi/hoek@^8.4.0":
+  version "8.5.1"
+  resolved "https://registry.npmjs.org/@hapi/hoek/-/hoek-8.5.1.tgz#fde96064ca446dec8c55a8c2f130957b070c6e06"
+  integrity sha512-yN7kbciD87WzLGc5539Tn0sApjyiGHAJgKvG9W8C7O+6c7qmoQMfVs0W4bX17eqz6C78QJqqFrtgdK5EWf6Qow==
+
 "@hapi/hoek@9.x.x", "@hapi/hoek@^9.0.0":
   version "9.0.3"
   resolved "https://registry.npmjs.org/@hapi/hoek/-/hoek-9.0.3.tgz#e49e637d5de8faa4f0d313c2590b455d7c00afd7"
@@ -204,6 +232,21 @@
   dependencies:
     "@hapi/hoek" "9.x.x"
     mime-db "1.x.x"
+
+"@hapi/nes@^12.0.0":
+  version "12.0.0"
+  resolved "https://registry.npmjs.org/@hapi/nes/-/nes-12.0.0.tgz#cec188b9339ca87f8ba1a01ca4b1f527d550bfc8"
+  integrity sha512-bboyD/pvKg/tuIX4S76U2D9/xZB896aC8GHarwfV1Lc0+A0m9N1OeQWoJls+sP1hfWpcdXUhDwzwnFOvEOBU2Q==
+  dependencies:
+    "@hapi/boom" "9.x.x"
+    "@hapi/bounce" "2.x.x"
+    "@hapi/call" "6.x.x"
+    "@hapi/cryptiles" "5.x.x"
+    "@hapi/hoek" "9.x.x"
+    "@hapi/iron" "6.x.x"
+    "@hapi/joi" "17.x.x"
+    "@hapi/teamwork" "4.x.x"
+    ws "6.x.x"
 
 "@hapi/nigel@4.x.x":
   version "4.0.0"
@@ -359,6 +402,14 @@
   integrity sha512-hcdSoYa32wcP+sEfyf85ieGwElwokcZ/mma8eyqQ4OTHeCAGwfaoiGxjG4z1Dm+RGhIYLHlW54ji5FFwahH12A==
   dependencies:
     "@types/mime-db" "*"
+
+"@types/hapi__nes@*", "@types/hapi__nes@^11.0.3":
+  version "11.0.3"
+  resolved "https://registry.npmjs.org/@types/hapi__nes/-/hapi__nes-11.0.3.tgz#f4c2a8f62db602f54bb2d3b587de9fa7ef878c57"
+  integrity sha512-zOwMjTCImJJ6iz3f8NKpGBIS+kWz1YWYdvaC2tZrna5belBrFWrsIWgGnUET8lW1YZaPC/Xik2QNXxd6nIE8Sw==
+  dependencies:
+    "@types/hapi__hapi" "*"
+    "@types/hapi__nes" "*"
 
 "@types/hapi__podium@*":
   version "3.4.0"
@@ -625,6 +676,11 @@ astral-regex@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/astral-regex/-/astral-regex-1.0.0.tgz#6c8c3fb827dd43ee3918f27b82782ab7658a6fd9"
   integrity sha512-+Ryf6g3BKoRc7jfp7ad8tM4TtMiaWvbF/1/sQcZPkkS7ag3D5nMBCe2UfOTONtAkaG0tO0ij3C5Lwmf1EiyjHg==
+
+async-limiter@~1.0.0:
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/async-limiter/-/async-limiter-1.0.1.tgz#dd379e94f0db8310b08291f9d64c3209766617fd"
+  integrity sha512-csOlWGAcRFJaI6m+F2WKdnMKr4HhdhFVBk0H/QbJFMCr+uO2kwohwXQPxw/9OCxp05r5ghVBFSyioixx3gfkNQ==
 
 axobject-query@^2.0.2:
   version "2.1.2"
@@ -2956,6 +3012,13 @@ write@1.0.3:
   integrity sha512-/lg70HAjtkUgWPVZhZcm+T4hkL8Zbtp1nFNOn3lRrxnlv50SRBv7cR7RqR+GMsd3hUXy9hWBo4CHTbFTcOYwig==
   dependencies:
     mkdirp "^0.5.1"
+
+ws@6.x.x:
+  version "6.2.1"
+  resolved "https://registry.npmjs.org/ws/-/ws-6.2.1.tgz#442fdf0a47ed64f59b6a5d8ff130f4748ed524fb"
+  integrity sha512-GIyAXC2cB7LjvpgMt9EKS2ldqr0MTrORaleiOno6TweZ6r3TKtoFQWay/2PceJ3RuBasOHzXNn5Lrw1X0bEjqA==
+  dependencies:
+    async-limiter "~1.0.0"
 
 xml2js@^0.4.17:
   version "0.4.23"
