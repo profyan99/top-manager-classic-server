@@ -1,5 +1,6 @@
 import GameService from '../service/game-service';
 import GameValidator from './validator/game-validator';
+import {extractUserFromRequest} from "./common";
 
 const getScenarios = {
   method: 'GET',
@@ -13,7 +14,7 @@ const addScenario = {
   method: 'POST',
   path: '/scenarios',
   async handler(request) {
-    return GameService.addScenario(request.auth.credentials.user, request.payload);
+    return GameService.addScenario(extractUserFromRequest(request), request.payload);
   },
   options: {
     validate: {
@@ -40,7 +41,7 @@ const deleteGame = {
   method: 'DELETE',
   path: '/games/{gameId}',
   async handler(request, h) {
-    await GameService.deleteGame(request.auth.credentials.user, request.params);
+    await GameService.deleteGame(extractUserFromRequest(request), request.params);
     h.response();
   },
   options: {
@@ -57,7 +58,6 @@ const getGames = {
     return GameService.getGames();
   },
 };
-
 
 
 export default [

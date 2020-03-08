@@ -13,4 +13,13 @@ export class GameRepository extends Repository<Game> {
       ],
     });
   }
+
+  findOneWithoutPeriods(gameId: number) {
+    return this.findOne({
+      relations: [
+        'players',
+        'scenario',
+      ],
+    });
+  }
 }

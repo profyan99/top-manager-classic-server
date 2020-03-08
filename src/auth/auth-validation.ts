@@ -3,7 +3,7 @@ import {User} from "../entity/user/User";
 
 interface ValidationPayload {
   isValid: boolean;
-  credentials?: { user: User };
+  credentials?: { profile: User; user: string };
 }
 
 export default async (decoded, request, h): Promise<ValidationPayload> => {
@@ -16,7 +16,8 @@ export default async (decoded, request, h): Promise<ValidationPayload> => {
   return {
     isValid: true,
     credentials: {
-      user,
+      profile: user,
+      user: user.userName,
     },
   }
 };

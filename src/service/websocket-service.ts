@@ -2,7 +2,9 @@ import * as Nes from '@hapi/nes';
 import * as Hapi from '@hapi/hapi';
 import {Socket} from "@hapi/nes";
 
-let socket = null;
+import GameService from './game-service';
+
+let socket: Hapi.Server = null;
 
 export async function registerWebsocketServer(server: Hapi.Server) {
   socket = server;
@@ -21,28 +23,43 @@ export async function registerWebsocketServer(server: Hapi.Server) {
       },
     }
   });
-  server.subscription('/roomList', {
+  socket.subscription('/roomList', {
     auth: {
       mode: 'required',
       entity: 'user',
       index: true,
     },
     onSubscribe(socket: Socket, path, params): Promise<any> {
-      //TODO connected via websocket
       console.log('SUBSCRIBED: ', socket);
       return Promise.resolve();
     },
   });
 
-  server.subscription('/room/{roomId}', {
+  socket.subscription('/room/{roomId}', {
     auth: {
       mode: 'required',
       entity: 'user',
       index: true,
     },
-    onSubscribe(socket: Socket, path, params): Promise<any> {
-      //TODO connected via websocket
-      return Promise.resolve();
+    async onSubscribe(socket: Socket, path, params): Promise<any> {
+      if (await GameService.checkUserInGame({
+        gameId: params,
+        userName: socket.auth.credentials.user,
+      })) {
+        return Promise.resolve();
+      }
+      return Promise.reject();
     },
   });
 }
+
+export const publish = (path, message, options = {}): void => {
+  if (!socket) {
+    return;
+  }
+  socket.publish(path, message, options);
+};
+
+export default {
+  publish,
+};
