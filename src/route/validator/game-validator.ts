@@ -11,11 +11,11 @@ const addScenario = Joi.object().keys({
 
 const addGame = Joi.object().keys({
   name: Joi.string().min(6).required(),
-  maxPlayers: Joi.number().min(2).max(8).required(),
+  maxPlayers: Joi.number().required(),
   tournament: Joi.boolean().default(false),
-  scenario: Joi.string().min(6).default(null),
-  maxRounds: Joi.number().min(2).required(),
-  password: Joi.string().min(6).default(null),
+  scenario: Joi.string().default(null),
+  maxPeriods: Joi.number().required(),
+  password: Joi.string().default(null),
   periodDuration: Joi.number().required(),
 });
 

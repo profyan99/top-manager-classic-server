@@ -14,7 +14,10 @@ const server = new Hapi.Server({
   host: '127.0.0.1',
   port: process.env.PORT,
   routes: {
-    "cors": true
+    cors: {
+      origin: ["*"],
+      credentials: true,
+    },
   },
 });
 

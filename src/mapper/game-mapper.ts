@@ -7,12 +7,13 @@ const mapPreview = (game: Game) => ({
   name: game.name,
   maxPlayers: game.maxPlayers,
   maxPeriods: game.maxPeriods,
-  currentPlayers: game.players.length,
+  currentPlayers: (game.players && game.players.length) || 0,
   locked: !!game.password,
   tournament: game.tournament,
   scenario: ScenarioMapper.map(game.scenario),
   state: game.state,
   currentPeriod: game.currentPeriod,
+  players: (game.players && game.players.map((player) => player.userName)) || [],
 });
 
 export default {

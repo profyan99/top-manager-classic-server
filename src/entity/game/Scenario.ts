@@ -17,12 +17,23 @@ export class Scenario {
   @Column()
   extraBankRate: number;
 
-  public constructor({ name, description, loanLimit, extraLoanLimit, bankRate, extraBankRate }) {
-    this.name = name;
-    this.description = description;
-    this.loanLimit = loanLimit;
-    this.extraLoanLimit = extraLoanLimit;
-    this.bankRate = bankRate;
-    this.extraBankRate = extraBankRate;
+  public constructor(props?: ScenarioProps) {
+    if(props) {
+      this.name = props.name;
+      this.description = props.description;
+      this.loanLimit = props.loanLimit;
+      this.extraLoanLimit = props.extraLoanLimit;
+      this.bankRate = props.bankRate;
+      this.extraBankRate = props.extraBankRate;
+    }
   }
+}
+
+export interface ScenarioProps {
+  name: string;
+  description: string;
+  loanLimit: number;
+  extraLoanLimit: number;
+  bankRate: number;
+  extraBankRate: number;
 }

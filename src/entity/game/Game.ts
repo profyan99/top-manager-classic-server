@@ -27,13 +27,14 @@ export class Game {
   @Column({
     type: "enum",
     enum: GameState,
+    default: GameState.PREPARE,
   })
   state: GameState;
 
   @Column()
   maxPeriods: number;
 
-  @Column()
+  @Column({ default: 0 })
   currentPeriod: number;
 
   @ManyToOne(type => Scenario)
@@ -42,14 +43,17 @@ export class Game {
   @OneToMany(type => Player, player => player.game)
   players: Player[];
 
-  @Column(type => GamePeriod)
+  @OneToMany(type => GamePeriod, gamePeriod => gamePeriod.game)
   periods: GamePeriod[];
 
+  @Column({ default: 0 })
   currentSecond: number;
 
+  @Column({ default: false })
   isSendSolutionsAllowed: boolean;
 
-  playersSolutionsAmount: boolean;
+  @Column({ default: 0 })
+  playersSolutionsAmount: number;
 
   public constructor(props: GameProps) {
     Object.assign(this, props);

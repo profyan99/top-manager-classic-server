@@ -1,5 +1,5 @@
 export enum GameState {
-  PREPARE = 'prepare',
-  PLAY = 'play',
-  END = 'end'
+  PREPARE = 'PREPARE',
+  PLAY = 'PLAY',
+  END = 'END'
 }

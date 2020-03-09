@@ -4,10 +4,8 @@ import GameMapper from '../mapper/game-mapper';
 import PlayerMapper from '../mapper/player-mapper';
 import {Player} from "../entity/player/Player";
 
-const { GAME_LIST_ROUTE, GAME_ROUTE } = process.env;
-
 const broadcastGamePreviewEvent = (game: Game, eventType: string) => {
-  WebsocketService.publish(GAME_LIST_ROUTE, {
+  WebsocketService.publish(process.env.GAME_LIST_ROUTE, {
     objectType: 'GAME_PREVIEW',
     eventType: eventType,
     body: GameMapper.mapPreview(game),
@@ -15,7 +13,7 @@ const broadcastGamePreviewEvent = (game: Game, eventType: string) => {
 };
 
 const broadcastPlayerEvent = (game: Game, player: Player, eventType: string) => {
-  WebsocketService.publish(`${GAME_ROUTE}/${game.id}`, {
+  WebsocketService.publish(`${process.env.GAME_ROUTE}/${game.id}`, {
     objectType: 'PLAYER',
     eventType: eventType,
     body: PlayerMapper.mapPreview(player),
@@ -43,7 +41,7 @@ export const broadcastPlayerConnected = (game: Game, player: Player) => {
 };
 
 export const sendPlayerUpdate = (game: Game, player: Player) => {
-  WebsocketService.publish(GAME_LIST_ROUTE, {
+  WebsocketService.publish(process.env.GAME_LIST_ROUTE, {
     objectType: 'COMPANY',
     eventType: 'UPDATE',
     body: PlayerMapper.mapFull(player),

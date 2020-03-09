@@ -1,4 +1,4 @@
-import {Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn} from "typeorm";
 import {PlayerState} from "./PlayerState";
 import {User} from "../user/User";
 import {Game} from "../game/Game";
@@ -18,13 +18,14 @@ export class Player {
   @Column({
     type: "enum",
     enum: PlayerState,
+    default: PlayerState.WAIT,
   })
   state: PlayerState;
 
-  @Column()
+  @Column({ default: false })
   isBankrupt: boolean;
 
-  @Column()
+  @Column({ default: 0 })
   timeToEndReload: number;
 
   @OneToOne(type => User)
@@ -34,7 +35,7 @@ export class Player {
   @ManyToOne(type => Game, game => game.players)
   game: Game;
 
-  @Column(type => Company)
+  @OneToMany(type => Company, company => company.player)
   companyPeriods: Company[];
 
 }

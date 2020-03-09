@@ -54,9 +54,11 @@ const mapFullByPeriod = (player: Player, period: number) => {
   }
 };
 
+const currentPeriod = (player) => (player.companyPeriods && (player.companyPeriods.length - 1)) || 0;
+
 export default {
   mapFullByPeriod,
-  mapFull: (player: Player) => mapFullByPeriod(player, player.companyPeriods.length - 1),
+  mapFull: (player: Player) => mapFullByPeriod(player, currentPeriod(player)),
   mapPreviewByPeriod,
-  mapPreview: (player: Player) => mapPreviewByPeriod(player, player.companyPeriods.length - 1),
+  mapPreview: (player: Player) => mapPreviewByPeriod(player, currentPeriod(player)),
 };

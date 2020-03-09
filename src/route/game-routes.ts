@@ -18,7 +18,7 @@ const addScenario = {
   },
   options: {
     validate: {
-      payload: GameValidator.addScenario,
+      //payload: GameValidator.addScenario,
     },
   },
 };
@@ -28,11 +28,11 @@ const addGame = {
   path: '/games',
   async handler(request, h) {
     await GameService.addGame(request.payload);
-    h.response();
+    return h.response();
   },
   options: {
     validate: {
-      payload: GameValidator.addGame,
+      //payload: GameValidator.addGame,
     },
   },
 };
@@ -42,11 +42,11 @@ const deleteGame = {
   path: '/games/{gameId}',
   async handler(request, h) {
     await GameService.deleteGame(extractUserFromRequest(request), request.params);
-    h.response();
+    return h.response();
   },
   options: {
     validate: {
-      params: GameValidator.deleteGame,
+      //params: GameValidator.deleteGame,
     },
   },
 };
@@ -59,6 +59,18 @@ const getGames = {
   },
 };
 
+const connectToGame = {
+  method: 'POST',
+  path: '/games/{gameId}',
+  async handler(request) {
+    return GameService.connectToGame(extractUserFromRequest(request), { ...request.payload, ...request.params });
+  },
+  options: {
+    validate: {
+      //payload: GameValidator.addGame,
+    },
+  },
+};
 
 export default [
   getScenarios,
@@ -66,4 +78,5 @@ export default [
   addGame,
   deleteGame,
   getGames,
+  connectToGame,
 ];

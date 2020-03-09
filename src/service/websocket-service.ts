@@ -13,39 +13,35 @@ export async function registerWebsocketServer(server: Hapi.Server) {
     options: {
       auth: {
         type: 'cookie',
-        cookie: 'ws-auth',
+        cookie: 'nes-auth',
         password: process.env.AUTH_COOKIE_PASSWORD,
         isSecure: process.env.NODE_ENV === 'production',
         index: true,
         isHttpOnly: false,
-        isSameSite: false,
         endpoint: '/api/nes/auth',
       },
     }
   });
-  socket.subscription('/roomList', {
+  socket.subscription('/games', {
     auth: {
       mode: 'required',
       entity: 'user',
       index: true,
     },
-    onSubscribe(socket: Socket, path, params): Promise<any> {
-      console.log('SUBSCRIBED: ', socket);
-      return Promise.resolve();
-    },
   });
 
-  socket.subscription('/room/{roomId}', {
+  socket.subscription('/games/{gameId}', {
     auth: {
       mode: 'required',
       entity: 'user',
       index: true,
     },
     async onSubscribe(socket: Socket, path, params): Promise<any> {
-      if (await GameService.checkUserInGame({
-        gameId: params,
+      const result = await GameService.checkUserInGame({
+        ...params,
         userName: socket.auth.credentials.user,
-      })) {
+      });
+      if (result) {
         return Promise.resolve();
       }
       return Promise.reject();

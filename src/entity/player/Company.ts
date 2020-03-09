@@ -1,89 +1,94 @@
-import {Column} from "typeorm";
+import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Player} from "./Player";
 
+@Entity()
 export class Company {
 
-  @Column()
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ default: 0 })
   period: number;
 
-  @Column()
+  @Column({ default: 0 })
   receivedOrders: number;
-  @Column()
+  @Column({ default: 0 })
   machineTools: number;
-  @Column()
+  @Column({ default: 0 })
   storage: number;
-  @Column()
+  @Column({ default: 0 })
   storageCost: number;
-  @Column()
+  @Column({ default: 0 })
   sales: number;
-  @Column()
+  @Column({ default: 0 })
   backlogSales: number;
 
-  @Column()
+  @Column({ default: 0 })
   price: number;
-  @Column()
+  @Column({ default: 0 })
   production: number;
-  @Column()
+  @Column({ default: 0 })
   marketing: number;
-  @Column()
+  @Column({ default: 0 })
   investments: number;
-  @Column()
+  @Column({ default: 0 })
   nir: number;
 
-  @Column()
+  @Column({ default: 0 })
   bank: number;
-  @Column()
+  @Column({ default: 0 })
   loan: number;
-  @Column()
+  @Column({ default: 0 })
   activeStorage: number;
-  @Column()
+  @Column({ default: 0 })
   kapInvests: number;
-  @Column()
+  @Column({ default: 0 })
   sumActives: number;
 
-  @Column()
+  @Column({ default: 0 })
   revenue: number;
-  @Column()
+  @Column({ default: 0 })
   SPPT: number;
-  @Column()
+  @Column({ default: 0 })
   bankInterest: number;
-  @Column()
+  @Column({ default: 0 })
   grossIncome: number;
-  @Column()
+  @Column({ default: 0 })
   profitTax: number;
-  @Column()
+  @Column({ default: 0 })
   tax: number;
-  @Column()
+  @Column({ default: 0 })
   netProfit: number;
-  @Column()
+  @Column({ default: 0 })
   accumulatedProfit: number;
-  @Column()
+  @Column({ default: 0 })
   initialAccumulatedProfit: number;
-  @Column()
+  @Column({ default: 0 })
   marketingPart: number;
 
-  @Column()
+  @Column({ default: 0 })
   futurePower: number;
-  @Column()
+  @Column({ default: 0 })
   fullPower: number;
-  @Column()
+  @Column({ default: 0 })
   usingPower: number;
-  @Column()
+  @Column({ default: 0 })
   amortization: number;
-  @Column()
+  @Column({ default: 0 })
   additionalInvestments: number;
 
-  @Column()
+  @Column({ default: 0 })
   productionCost: number;
-  @Column()
+  @Column({ default: 0 })
   productionCostAll: number;
 
-  @Column()
+  @Column({ default: 0 })
   sumMarketing: number;
-  @Column()
+  @Column({ default: 0 })
   sumNir: number;
-  @Column()
+  @Column({ default: 0 })
   sumProduction: number;
-  @Column()
+  @Column({ default: 0 })
   rating: number;
 
   maxPredictedSales: number;
@@ -92,5 +97,8 @@ export class Company {
   shareEffectMk: number;
   shareEffectRd: number;
   shareEffectPr: number;
+
+  @ManyToOne(type => Player, player => player.companyPeriods)
+  player: Player;
 
 }

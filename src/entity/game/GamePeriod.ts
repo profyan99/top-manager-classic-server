@@ -1,43 +1,50 @@
-import {Column} from "typeorm";
+import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Game} from "./Game";
 
+@Entity()
 export class GamePeriod {
 
-  @Column()
+  @PrimaryGeneratedColumn()
+  id: number;
+  @Column({ default: 0 })
   period: number;
-  @Column()
+  @Column({ default: 0 })
   summaryMarketing: number;
-  @Column()
+  @Column({ default: 0 })
   summaryNir: number;
-  @Column()
+  @Column({ default: 0 })
   summaryProduction: number;
-  @Column()
+  @Column({ default: 0 })
   totalMarketing: number;
-  @Column()
+  @Column({ default: 0 })
   totalPrice: number;
-  @Column()
+  @Column({ default: 0 })
   totalBuyers: number;
-  @Column()
+  @Column({ default: 0 })
   totalSales: number;
 
 
-  @Column()
+  @Column({ default: 0 })
   summaryPeriodPower: number;
-  @Column()
+  @Column({ default: 0 })
   summaryPeriodProduction: number;
-  @Column()
+  @Column({ default: 0 })
   summaryPeriodMarketing: number;
-  @Column()
+  @Column({ default: 0 })
   summaryPeriodSales: number;
-  @Column()
+  @Column({ default: 0 })
   summaryPeriodStorage: number;
-  @Column()
+  @Column({ default: 0 })
   summaryPeriodRevenue: number;
-  @Column()
+  @Column({ default: 0 })
   summaryPeriodKapInvests: number;
-  @Column()
+  @Column({ default: 0 })
   averagePeriodPrice: number;
-  @Column()
+  @Column({ default: 0 })
   averagePeriodProductionCost: number;
-  @Column()
+  @Column({ default: 0 })
   averagePeriodUsingPower: number;
+
+  @ManyToOne(type => Game, game => game.periods)
+  game: Game;
 }

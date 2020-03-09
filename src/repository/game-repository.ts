@@ -9,6 +9,7 @@ export class GameRepository extends Repository<Game> {
     return this.find({
       relations: [
         'players',
+        'players.companyPeriods',
         'scenario',
       ],
     });
@@ -16,8 +17,12 @@ export class GameRepository extends Repository<Game> {
 
   findOneWithoutPeriods(gameId: number) {
     return this.findOne({
+      where: {
+        id: gameId,
+      },
       relations: [
         'players',
+        'players.companyPeriods',
         'scenario',
       ],
     });

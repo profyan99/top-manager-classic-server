@@ -1,4 +1,4 @@
 export enum PlayerState {
-  WAIT = 'wait',
-  THINK = 'think',
+  WAIT = 'WAIT',
+  THINK = 'THINK',
 }
