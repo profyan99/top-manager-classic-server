@@ -28,6 +28,9 @@ export class Player {
   @Column({ default: 0 })
   timeToEndReload: number;
 
+  @Column({ default: true })
+  isConnected: boolean;
+
   @OneToOne(type => User)
   @JoinColumn()
   user: User;

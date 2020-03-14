@@ -51,6 +51,13 @@ const mapFullByPeriod = (player: Player, period: number) => {
 
       productionCost: company.productionCost,
     },
+    solutions: {
+      price: company.price,
+      production: company.production,
+      marketing: company.marketing,
+      investments: company.investments,
+      nir: company.nir,
+    },
   }
 };
 

@@ -4,6 +4,8 @@ import GameMapper from '../mapper/game-mapper';
 import PlayerMapper from '../mapper/player-mapper';
 import {Player} from "../entity/player/Player";
 
+const getGamePath = (game: Game): string => `${process.env.GAME_LIST_ROUTE}/${game.id}`;
+
 const broadcastGamePreviewEvent = (game: Game, eventType: string) => {
   WebsocketService.publish(process.env.GAME_LIST_ROUTE, {
     objectType: 'GAME_PREVIEW',
@@ -13,10 +15,26 @@ const broadcastGamePreviewEvent = (game: Game, eventType: string) => {
 };
 
 const broadcastPlayerEvent = (game: Game, player: Player, eventType: string) => {
-  WebsocketService.publish(`${process.env.GAME_ROUTE}/${game.id}`, {
+  WebsocketService.publish(getGamePath(game), {
     objectType: 'PLAYER',
     eventType: eventType,
     body: PlayerMapper.mapPreview(player),
+  });
+};
+
+const broadcastGameEvent = (game: Game, eventType: string, body) => {
+  WebsocketService.publish(getGamePath(game), {
+    objectType: 'GAME',
+    eventType,
+    body,
+  });
+};
+
+const broadcastMessage = (path: string, message) => {
+  WebsocketService.publish(path, {
+    objectType: 'MESSAGE',
+    eventType: 'ADD',
+    body: message,
   });
 };
 
@@ -26,6 +44,7 @@ export const broadcastAddGameEvent = (game: Game) => {
 
 export const broadcastRemoveGameEvent = (game: Game) => {
   broadcastGamePreviewEvent(game, 'REMOVE');
+  broadcastGameEvent(game, 'REMOVE', {});
 };
 
 export const broadcastUpdateGameEvent = (game: Game) => {
@@ -41,7 +60,7 @@ export const broadcastPlayerConnected = (game: Game, player: Player) => {
 };
 
 export const sendPlayerUpdate = (game: Game, player: Player) => {
-  WebsocketService.publish(process.env.GAME_LIST_ROUTE, {
+  WebsocketService.publish(getGamePath(game), {
     objectType: 'COMPANY',
     eventType: 'UPDATE',
     body: PlayerMapper.mapFull(player),
@@ -50,10 +69,31 @@ export const sendPlayerUpdate = (game: Game, player: Player) => {
   });
 };
 
+export const broadcastMessageToGeneralChat = (message) => {
+  broadcastMessage(process.env.GAME_LIST_ROUTE, message);
+};
+
+export const broadcastMessageToGameChat = (game: Game, message) => {
+  broadcastMessage(getGamePath(game), message);
+};
+
+export const broadcastNewGameEvent = (game: Game) => {
+  broadcastUpdateGameEvent(game);
+  broadcastGameEvent(game, 'UPDATE', GameMapper.mapFull(game));
+};
+
+export const broadcastGameTickEvent = (game: Game, amount: number) => {
+  broadcastGameEvent(game, 'TICK', { amount });
+};
+
 export default {
   broadcastAddGameEvent,
   broadcastRemoveGameEvent,
   broadcastPlayerReconnected,
   broadcastUpdateGameEvent,
   broadcastPlayerConnected,
+  broadcastMessageToGeneralChat,
+  broadcastMessageToGameChat,
+  broadcastNewGameEvent,
+  broadcastGameTickEvent,
 };

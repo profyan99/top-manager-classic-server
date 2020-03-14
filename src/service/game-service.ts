@@ -1,10 +1,10 @@
-import {getCustomRepository, getManager, getRepository, Repository} from "typeorm";
+import { getCustomRepository, getManager, getRepository, Repository } from "typeorm";
 import * as Boom from '@hapi/boom';
 
-import {Scenario} from "../entity/game/Scenario";
-import {User} from "../entity/user/User";
-import {Game} from "../entity/game/Game";
-import {GameRepository} from "../repository/game-repository";
+import { Scenario } from "../entity/game/Scenario";
+import { User } from "../entity/user/User";
+import { Game } from "../entity/game/Game";
+import { GameRepository } from "../repository/game-repository";
 import UserService from './user-service';
 import {
   broadcastAddGameEvent,
@@ -13,14 +13,18 @@ import {
   broadcastUpdateGameEvent,
   broadcastPlayerConnected,
   sendPlayerUpdate,
+  broadcastMessageToGameChat,
+  broadcastMessageToGeneralChat,
 } from './game-message-sender-service';
 
 import ScenarioMapper from '../mapper/scenario-mapper';
 import GameMapper from '../mapper/game-mapper';
-import {Player} from "../entity/player/Player";
-import {GameState} from "../entity/game/GameState";
+import { Player } from "../entity/player/Player";
+import { GameState } from "../entity/game/GameState";
 import addPlayer from "./player/player-add";
-import {PlayerRepository} from "../repository/player-repository";
+import { PlayerRepository } from "../repository/player-repository";
+import updateGame from "./game/game-update";
+import removeGame from "./game/game-remove";
 
 const getScenarios = async () => {
   return (await getRepository(Scenario).find())
@@ -30,7 +34,7 @@ const getScenarios = async () => {
 const addScenario = async (user: User, payload) => {
   const scenarioRepository: Repository<Scenario> = getRepository(Scenario);
 
-  if (await scenarioRepository.findOne({where: {name: payload.name}})) {
+  if (await scenarioRepository.findOne({ where: { name: payload.name } })) {
     throw Boom.badRequest('Scenario with that name has already existed');
   }
 
@@ -44,17 +48,18 @@ const addGame = async (payload) => {
   const gameRepository = getCustomRepository(GameRepository);
 
   const scenarioName = payload.scenario || process.env.DEFAULT_SCENARIO;
-  const scenario: Scenario = await scenarioRepository.findOne({where: {name: scenarioName}});
-  if(!scenario) {
+  const scenario: Scenario = await scenarioRepository.findOne({ where: { name: scenarioName } });
+  if (!scenario) {
     throw Boom.badRequest('Invalid scenario');
   }
+  payload.startCountDownTime = Date.now();
 
-  const game: Game = new Game({...payload, scenario});
+  const game: Game = new Game({ ...payload, scenario });
   await gameRepository.save(game);
   broadcastAddGameEvent(game);
 };
 
-const deleteGame = async (user: User, {gameId}) => {
+const deleteGame = async (user: User, { gameId }) => {
   const gameRepository: Repository<Game> = getRepository(Game);
   if (!UserService.isAdmin(user)) {
     throw Boom.badRequest('You don\'t have permissions to do that action');
@@ -74,7 +79,7 @@ const getGames = async () => {
     .map((game) => GameMapper.mapPreview(game));
 };
 
-const connectToGame = async (user: User, {gameId, password, companyName}) => {
+const connectToGame = async (user: User, { gameId, password, companyName }) => {
   return await getManager().transaction(async em => {
     const gameRepository = em.getCustomRepository(GameRepository);
     const playerRepository = em.getCustomRepository(PlayerRepository);
@@ -119,9 +124,46 @@ const connectToGame = async (user: User, {gameId, password, companyName}) => {
   });
 };
 
-const checkUserInGame = async ({gameId, userName}) => {
+const checkUserInGame = async ({ gameId, userName }) => {
   const game = await getCustomRepository(GameRepository).findOneWithoutPeriods(gameId);
   return game && game.players.some((player) => player.userName === userName);
+};
+
+const sendChatMessage = async (user: User, { message, gameId }) => {
+  const chatMessage = {
+    message,
+    time: Date.now(),
+    player: {
+      id: user.id,
+      userName: user.userName,
+      avatar: user.avatar,
+    },
+  };
+
+  if (gameId) {
+    const game = await getRepository(Game).findOne(gameId);
+    if (!game) {
+      throw Boom.badRequest('Invalid game id');
+    }
+    broadcastMessageToGameChat(game, chatMessage);
+  } else {
+    broadcastMessageToGeneralChat(chatMessage);
+  }
+};
+
+const isGameNeedToBeRemoved = (game: Game) =>
+  game.players.length === 0
+  && (Date.now() - game.startCountDownTime) / 1000 >= game.periodDuration;
+
+export const updateGames = async () => {
+  const allGames: Game[] = await getCustomRepository(GameRepository).findWithoutPeriods();
+  for (let game of allGames) {
+    if (isGameNeedToBeRemoved(game)) {
+      await removeGame(game);
+    } else {
+      await updateGame(game);
+    }
+  }
 };
 
 export default {
@@ -132,4 +174,6 @@ export default {
   getGames,
   connectToGame,
   checkUserInGame,
+  sendChatMessage,
+  updateGames,
 }

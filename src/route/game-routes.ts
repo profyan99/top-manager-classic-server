@@ -72,6 +72,34 @@ const connectToGame = {
   },
 };
 
+const sendChatMessageToGeneral = {
+  method: 'POST',
+  path: '/games/messages',
+  async handler(request, h) {
+    await GameService.sendChatMessage(extractUserFromRequest(request), request.payload);
+    return h.response();
+  },
+  options: {
+    validate: {
+      //payload: GameValidator.addGame,
+    },
+  },
+};
+
+const sendChatMessageToGame = {
+  method: 'POST',
+  path: '/games/{gameId}/messages',
+  async handler(request, h) {
+    await GameService.sendChatMessage(extractUserFromRequest(request), { ...request.payload, ...request.params });
+    return h.response();
+  },
+  options: {
+    validate: {
+      //payload: GameValidator.addGame,
+    },
+  },
+};
+
 export default [
   getScenarios,
   addScenario,
@@ -79,4 +107,6 @@ export default [
   deleteGame,
   getGames,
   connectToGame,
+  sendChatMessageToGeneral,
+  sendChatMessageToGame,
 ];

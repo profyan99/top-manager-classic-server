@@ -20,7 +20,6 @@ export default {
   mapPreview,
   mapFull: (game: Game) => ({
     ...mapPreview(game),
-    currentSecond: game.currentSecond,
     players: game.players.map((player) => PlayerMapper.mapPreview(player)),
   }),
 };

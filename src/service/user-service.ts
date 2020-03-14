@@ -120,6 +120,11 @@ const loginUser = async ({userName, password}) => {
 
 };
 
+export const addPlayerLeaveGame = async (user: User) => {
+  user.gameStats.leaveGameAmount++;
+  await getRepository(User).save(user);
+};
+
 export default {
   addUser,
   getCurrentUser,
@@ -130,4 +135,5 @@ export default {
   loginUserThrowSocial,
   getUserByRefreshToken,
   isAdmin,
+  addPlayerLeaveGame,
 }

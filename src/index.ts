@@ -6,6 +6,7 @@ import {config} from 'dotenv';
 import routes from './route';
 import Authentication from './auth';
 import {registerWebsocketServer} from "./service/websocket-service";
+import startGameScheduler from './service/game-scheduler';
 
 config();
 
@@ -34,6 +35,7 @@ Authentication.register(server)
   .then(() => registerWebsocketServer(server))
   .then(() => server.start())
   .then(() => createConnection())
+  .then(() => startGameScheduler())
   .then(() => console.log('Started  at', process.env.PORT))
   .catch((err) => {
     console.error(err);

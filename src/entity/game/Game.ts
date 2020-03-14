@@ -46,14 +46,17 @@ export class Game {
   @OneToMany(type => GamePeriod, gamePeriod => gamePeriod.game)
   periods: GamePeriod[];
 
-  @Column({ default: 0 })
-  currentSecond: number;
+  @Column({ type: 'bigint' })
+  startCountDownTime: number;
 
   @Column({ default: false })
   isSendSolutionsAllowed: boolean;
 
   @Column({ default: 0 })
   playersSolutionsAmount: number;
+
+  @Column({ default: false })
+  isRemoved: boolean;
 
   public constructor(props: GameProps) {
     Object.assign(this, props);
@@ -67,5 +70,6 @@ export interface GameProps {
   password?: string;
   tournament?: boolean;
   periodDuration: number;
+  startCountDownTime: number;
   scenario: Scenario;
 }

@@ -5,13 +5,17 @@ import {Game} from "../entity/game/Game";
 @EntityRepository(Game)
 export class GameRepository extends Repository<Game> {
 
-  findWithoutPeriods() {
+  findWithoutPeriods(isCached?: boolean) {
     return this.find({
+      where: {
+        isRemoved: false,
+      },
       relations: [
         'players',
         'players.companyPeriods',
         'scenario',
       ],
+      cache: isCached ? 60_000 : 1000,
     });
   }
 
