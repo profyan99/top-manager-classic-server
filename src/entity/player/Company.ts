@@ -16,7 +16,7 @@ export class Company {
   machineTools: number;
   @Column({ default: 0 })
   storage: number;
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'real' })
   storageCost: number;
   @Column({ default: 0 })
   sales: number;
@@ -63,30 +63,30 @@ export class Company {
   accumulatedProfit: number;
   @Column({ default: 0 })
   initialAccumulatedProfit: number;
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'real' })
   marketingPart: number;
 
   @Column({ default: 0 })
   futurePower: number;
   @Column({ default: 0 })
   fullPower: number;
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'real' })
   usingPower: number;
   @Column({ default: 0 })
   amortization: number;
   @Column({ default: 0 })
   additionalInvestments: number;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'real' })
   productionCost: number;
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'real' })
   productionCostAll: number;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'real' })
   sumMarketing: number;
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'real' })
   sumNir: number;
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'real' })
   sumProduction: number;
   @Column({ default: 0 })
   rating: number;

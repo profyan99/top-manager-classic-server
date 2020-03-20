@@ -8,7 +8,7 @@ const addNewCompany = async (game: Game, player: Player, em: EntityManager) => {
   const newCompany = new Company();
   newCompany.period = game.currentPeriod;
   newCompany.player = player;
-  await companyRepository.save(newCompany);
+  return companyRepository.save(newCompany);
 };
 
 export default addNewCompany;

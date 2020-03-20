@@ -12,9 +12,9 @@ export class Scenario {
   loanLimit: number;
   @Column()
   extraLoanLimit: number;
-  @Column()
+  @Column({ default: 0, type: 'real' })
   bankRate: number;
-  @Column()
+  @Column({ default: 0, type: 'real' })
   extraBankRate: number;
 
   public constructor(props?: ScenarioProps) {

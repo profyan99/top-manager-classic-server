@@ -20,7 +20,7 @@ const addPlayer = async (user: User, game: Game, companyName: string, em: Entity
   player.isBankrupt = false;
 
   const initialCompany = new Company();
-  initialCompany.period = -1;
+  initialCompany.period = 0;
   initialCompany.receivedOrders = 3600 / playersAmount;
   initialCompany.machineTools = 4200 / playersAmount;
 
@@ -35,20 +35,23 @@ const addPlayer = async (user: User, game: Game, companyName: string, em: Entity
   initialCompany.initialAccumulatedProfit = 4200 / playersAmount;
   initialCompany.productionCost = 18;
   initialCompany.futurePower = 4200 / playersAmount;
+  initialCompany.sales = 3360 / playersAmount;
+  initialCompany.sumNir = 3360 / playersAmount;
 
-  const zeroPeriodCompany = new Company();
-  zeroPeriodCompany.price = 30;
-  zeroPeriodCompany.production = 3360 / playersAmount;
-  zeroPeriodCompany.marketing = 8400 / playersAmount;
-  zeroPeriodCompany.investments = 4200 / playersAmount * 2;
-  zeroPeriodCompany.nir = 3360 / playersAmount;
+  const firstPeriodCompany = new Company();
+  firstPeriodCompany.period = 1;
+  firstPeriodCompany.price = 30;
+  firstPeriodCompany.production = 3360 / playersAmount;
+  firstPeriodCompany.marketing = 8400 / playersAmount;
+  firstPeriodCompany.investments = 4200 / playersAmount * 2;
+  firstPeriodCompany.nir = 3360 / playersAmount;
 
   await companyRepository.save(initialCompany);
-  await companyRepository.save(zeroPeriodCompany);
+  await companyRepository.save(firstPeriodCompany);
 
   player.companyPeriods = [];
   player.companyPeriods.push(initialCompany);
-  player.companyPeriods.push(zeroPeriodCompany);
+  player.companyPeriods.push(firstPeriodCompany);
 
   return playerRepository.save(player);
 };

@@ -5,7 +5,7 @@ import {Game} from "../entity/game/Game";
 @EntityRepository(Game)
 export class GameRepository extends Repository<Game> {
 
-  findWithoutPeriods(isCached?: boolean) {
+  findWithoutPeriods() {
     return this.find({
       where: {
         isRemoved: false,
@@ -15,19 +15,45 @@ export class GameRepository extends Repository<Game> {
         'players.companyPeriods',
         'scenario',
       ],
-      cache: isCached ? 60_000 : 1000,
+    });
+  }
+
+  findWithPlayers() {
+    return this.find({
+      where: {
+        isRemoved: false,
+      },
+      relations: [
+        'players',
+      ],
     });
   }
 
   findOneWithoutPeriods(gameId: number) {
     return this.findOne({
       where: {
+        isRemoved: false,
         id: gameId,
       },
       relations: [
         'players',
         'players.companyPeriods',
         'scenario',
+      ],
+    });
+  }
+
+  findOneFull(gameId: number) {
+    return this.findOne({
+      where: {
+        isRemoved: false,
+        id: gameId,
+      },
+      relations: [
+        'players',
+        'players.companyPeriods',
+        'scenario',
+        'periods',
       ],
     });
   }

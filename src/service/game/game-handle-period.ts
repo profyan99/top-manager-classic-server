@@ -6,14 +6,22 @@ import { PlayerState } from "../../entity/player/PlayerState";
 import addNewCompany from "../player/player-add-new-company";
 import { broadcastNewGameEvent, sendPlayerUpdate } from "../game-message-sender-service";
 import { GameRepository } from "../../repository/game-repository";
+import calculateGame from "./game-calculation";
+import removeInactivePlayers from "./game-remove-players";
+import { Company } from "../../entity/player/Company";
 
-export const handleNewPeriod = async (game: Game) => {
+const handleNewPeriod = async (game: Game, currentTime: number) => {
   return await getManager().transaction(async em => {
-    game.startCountDownTime = Date.now();
+    const gameRepository = em.getCustomRepository(GameRepository);
+
+    await removeInactivePlayers(game.players, currentTime, game.id, em);
+
     game.isSendSolutionsAllowed = false;
     game.playersSolutionsAmount = 0;
 
-    //TODO calc game
+    const newGamePeriod = await calculateGame(game, em);
+    game.periods.push(newGamePeriod);
+
     if (game.currentPeriod === game.maxPeriods) {
       game.state = GameState.END;
     } else {
@@ -22,14 +30,19 @@ export const handleNewPeriod = async (game: Game) => {
 
       for (let player of game.players) {
         player.state = PlayerState.THINK;
-        await addNewCompany(game, player, em);
+        const newCompany: Company = await addNewCompany(game, player, em);
+        player.companyPeriods.push(newCompany);
+        await em.save(player);
       }
     }
 
+    game.startCountDownTime = Date.now();
     broadcastNewGameEvent(game);
     game.players.forEach((player) => sendPlayerUpdate(game, player));
 
-    return em.getCustomRepository(GameRepository).save(game);
+    return gameRepository.save(game);
   });
 };
+
+export default handleNewPeriod;
 

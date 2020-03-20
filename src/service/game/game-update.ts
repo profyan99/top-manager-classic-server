@@ -1,33 +1,26 @@
-import { getRepository } from "typeorm";
-
 import { Game } from "../../entity/game/Game";
 import { GameState } from "../../entity/game/GameState";
-import { handleNewPeriod } from "./game-handle-period";
-import { Player } from "../../entity/player/Player";
-import { addPlayerLeaveGame } from "../user-service";
-import { broadcastGameTickEvent } from "../game-message-sender-service";
+import handleNewPeriod from "./game-handle-period";
+import { server } from '../../index';
+import { getCustomRepository } from "typeorm";
+import { GameRepository } from "../../repository/game-repository";
+import GameHandler from "./index";
 
-const removeInactivePlayers = async (players: Player[]) => {
-  const playerRepository = getRepository(Player);
-  const currentTime = Date.now();
-  const removedPlayers = players
-    .filter((player) => !player.isConnected && player.timeToEndReload && player.timeToEndReload < currentTime)
-    .map((player) => [playerRepository.remove(player), addPlayerLeaveGame(player.user)]);
+const updateGame = async (gamePreview: Game, currentTime: number) => {
+  const timeDiff = Math.round((currentTime - gamePreview.startCountDownTime) / 1000);
 
-  await Promise.all(removedPlayers);
-};
-
-const updateGame = async (game: Game) => {
-  const currentTime = Date.now();
-  const timeDiff = Math.round((currentTime - game.startCountDownTime) / 1000);
-
-  if (game.state !== GameState.END) {
-    broadcastGameTickEvent(game, timeDiff);
+  if(gamePreview.state === GameState.PREPARE && gamePreview.players.length >= gamePreview.maxPlayers) {
+    server.logger().info(`Game ${gamePreview.name}[${gamePreview.id}]: start`);
+    const game: Game = await getCustomRepository(GameRepository).findOneFull(gamePreview.id);
+    game.state = GameState.PLAY;
+    return GameHandler.handleNewPeriod(game, currentTime);
   }
 
-  if (timeDiff >= game.periodDuration && game.state === GameState.PLAY) {
-    await removeInactivePlayers(game.players);
-    await handleNewPeriod(game);
+  if (timeDiff >= gamePreview.periodDuration && gamePreview.state === GameState.PLAY) {
+    server.logger().info(`Game ${gamePreview.id}: new period [${gamePreview.currentPeriod + 1}]`);
+
+    const game: Game = await getCustomRepository(GameRepository).findOneFull(gamePreview.id);
+    return handleNewPeriod(game, currentTime);
   }
 };
 

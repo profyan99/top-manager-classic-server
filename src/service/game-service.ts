@@ -4,27 +4,20 @@ import * as Boom from '@hapi/boom';
 import { Scenario } from "../entity/game/Scenario";
 import { User } from "../entity/user/User";
 import { Game } from "../entity/game/Game";
+import { Player } from "../entity/player/Player";
+import { GameState } from "../entity/game/GameState";
+import { PlayerState } from "../entity/player/PlayerState";
+
+import { PlayerRepository } from "../repository/player-repository";
 import { GameRepository } from "../repository/game-repository";
-import UserService from './user-service';
-import {
-  broadcastAddGameEvent,
-  broadcastPlayerReconnected,
-  broadcastRemoveGameEvent,
-  broadcastUpdateGameEvent,
-  broadcastPlayerConnected,
-  sendPlayerUpdate,
-  broadcastMessageToGameChat,
-  broadcastMessageToGeneralChat,
-} from './game-message-sender-service';
 
 import ScenarioMapper from '../mapper/scenario-mapper';
 import GameMapper from '../mapper/game-mapper';
-import { Player } from "../entity/player/Player";
-import { GameState } from "../entity/game/GameState";
-import addPlayer from "./player/player-add";
-import { PlayerRepository } from "../repository/player-repository";
-import updateGame from "./game/game-update";
-import removeGame from "./game/game-remove";
+import GameHandler from './game';
+import PlayerHandler from './player';
+import UserService from './user-service';
+import MessageSender from './game-message-sender-service';
+import { server } from '../index';
 
 const getScenarios = async () => {
   return (await getRepository(Scenario).find())
@@ -45,7 +38,6 @@ const addScenario = async (user: User, payload) => {
 
 const addGame = async (payload) => {
   const scenarioRepository: Repository<Scenario> = getRepository(Scenario);
-  const gameRepository = getCustomRepository(GameRepository);
 
   const scenarioName = payload.scenario || process.env.DEFAULT_SCENARIO;
   const scenario: Scenario = await scenarioRepository.findOne({ where: { name: scenarioName } });
@@ -53,10 +45,10 @@ const addGame = async (payload) => {
     throw Boom.badRequest('Invalid scenario');
   }
   payload.startCountDownTime = Date.now();
+  payload.scenario = scenario;
 
-  const game: Game = new Game({ ...payload, scenario });
-  await gameRepository.save(game);
-  broadcastAddGameEvent(game);
+  const newGame: Game = await GameHandler.addGame(payload);
+  MessageSender.broadcastAddGameEvent(newGame);
 };
 
 const deleteGame = async (user: User, { gameId }) => {
@@ -71,7 +63,7 @@ const deleteGame = async (user: User, { gameId }) => {
   }
 
   await gameRepository.remove(game);
-  broadcastRemoveGameEvent(game);
+  MessageSender.broadcastRemoveGameEvent(game);
 };
 
 const getGames = async () => {
@@ -79,12 +71,12 @@ const getGames = async () => {
     .map((game) => GameMapper.mapPreview(game));
 };
 
-const connectToGame = async (user: User, { gameId, password, companyName }) => {
+const connectToGame = async (user: User, { gameId, password, companyName }, request) => {
   return await getManager().transaction(async em => {
     const gameRepository = em.getCustomRepository(GameRepository);
     const playerRepository = em.getCustomRepository(PlayerRepository);
 
-    const game = await gameRepository.findOneWithoutPeriods(gameId);
+    const game = await gameRepository.findOneFull(gameId);
     if (!game) {
       throw Boom.badRequest('Invalid game id');
     }
@@ -95,8 +87,8 @@ const connectToGame = async (user: User, { gameId, password, companyName }) => {
         throw Boom.badRequest('You have already playing in another game');
       }
       player.timeToEndReload = 0;
-      broadcastPlayerReconnected(game, player);
-      sendPlayerUpdate(game, player);
+      MessageSender.broadcastPlayerReconnected(game, player);
+      MessageSender.sendPlayerUpdate(game, player);
     } else {
       if (game.players.length === game.maxPlayers) {
         throw Boom.badRequest('In game there are no free slots');
@@ -113,20 +105,37 @@ const connectToGame = async (user: User, { gameId, password, companyName }) => {
       if (game.players.some((player) => player.companyName === companyName)) {
         throw Boom.badRequest('Company with this name has already registered');
       }
-      player = await addPlayer(user, game, companyName, em);
+      player = await PlayerHandler.addPlayer(user, game, companyName, em);
       game.players = game.players || [];
       game.players.push(player);
       await gameRepository.save(game);
-      broadcastUpdateGameEvent(game);
-      broadcastPlayerConnected(game, player);
+      MessageSender.broadcastUpdateGameEvent(game);
+      MessageSender.broadcastPlayerConnected(game, player);
+
+      request.logger.info(`Player ${player.userName}[${player.id}]: connected to ${game.name}[${game.id}]`);
     }
     return GameMapper.mapFull(game);
   });
 };
 
-const checkUserInGame = async ({ gameId, userName }) => {
+const checkUserInGame = async ({ gameId, userName }): Promise<boolean> => {
   const game = await getCustomRepository(GameRepository).findOneWithoutPeriods(gameId);
   return game && game.players.some((player) => player.userName === userName);
+};
+
+const leftFromGame = async ({ userName, isForce }) => {
+  const player = await getCustomRepository(PlayerRepository).findOneFullByUserName(userName);
+  if(!player) {
+    return;
+  }
+  const game: Game = await getCustomRepository(GameRepository).findOneWithoutPeriods(player.game.id);
+  if(!game) {
+    return;
+  }
+
+  await PlayerHandler.handlePlayerDisconnect(game, player, isForce);
+  MessageSender.broadcastPlayerDisconnected(game, player);
+  server.logger().info(`Player ${player.userName}[${player.id}]: disconnected from ${game.name}[${game.id}] force: ${isForce}`);
 };
 
 const sendChatMessage = async (user: User, { message, gameId }) => {
@@ -145,23 +154,48 @@ const sendChatMessage = async (user: User, { message, gameId }) => {
     if (!game) {
       throw Boom.badRequest('Invalid game id');
     }
-    broadcastMessageToGameChat(game, chatMessage);
+    MessageSender.broadcastMessageToGameChat(game, chatMessage);
   } else {
-    broadcastMessageToGeneralChat(chatMessage);
+    MessageSender.broadcastMessageToGeneralChat(chatMessage);
   }
 };
 
-const isGameNeedToBeRemoved = (game: Game) =>
-  game.players.length === 0
-  && (Date.now() - game.startCountDownTime) / 1000 >= game.periodDuration;
+const setPlayerSolutions = async (user: User, solutions, request) => {
+  const playerRepository = getCustomRepository(PlayerRepository);
+
+  const player: Player = await playerRepository.findOneFullByUserName(user.userName);
+  if (!player) {
+    throw Boom.badRequest('You are not playing now');
+  }
+
+  const game: Game = player.game;
+  if (player.state !== PlayerState.THINK || !game.isSendSolutionsAllowed || player.isBankrupt) {
+    throw Boom.badRequest("You can't send solutions");
+  }
+
+  await PlayerHandler.setPlayerSolutions(game, player, solutions);
+  game.playersSolutionsAmount++;
+  MessageSender.broadcastPlayerUpdated(game, player);
+  request.logger.info(`Player ${player.userName}[${player.id}]: sends solutions. [bankrupt: ${player.isBankrupt}]`, solutions);
+
+  const bankruptAmount = game.players.filter((player) => player.isBankrupt).length;
+  if (game.playersSolutionsAmount + bankruptAmount >= game.players.length) {
+    await GameHandler.handleNewPeriod(game, Date.now());
+  }
+};
+
+const isGameNeedToBeRemoved = (game: Game, currentTime: number) =>
+  game.players.length === 0 && (currentTime - game.startCountDownTime) / 1000 >= game.periodDuration;
 
 export const updateGames = async () => {
-  const allGames: Game[] = await getCustomRepository(GameRepository).findWithoutPeriods();
+  const allGames: Game[] = await getCustomRepository(GameRepository).findWithPlayers();
+  const currentTime = Date.now();
+
   for (let game of allGames) {
-    if (isGameNeedToBeRemoved(game)) {
-      await removeGame(game);
+    if (isGameNeedToBeRemoved(game, currentTime)) {
+      await GameHandler.removeGame(game);
     } else {
-      await updateGame(game);
+      await GameHandler.updateGame(game, currentTime);
     }
   }
 };
@@ -175,5 +209,7 @@ export default {
   connectToGame,
   checkUserInGame,
   sendChatMessage,
+  setPlayerSolutions,
+  leftFromGame,
   updateGames,
 }

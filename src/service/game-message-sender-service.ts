@@ -59,6 +59,14 @@ export const broadcastPlayerConnected = (game: Game, player: Player) => {
   broadcastPlayerEvent(game, player, 'CONNECT');
 };
 
+export const broadcastPlayerUpdated = (game: Game, player: Player) => {
+  broadcastPlayerEvent(game, player, 'UPDATE');
+};
+
+export const broadcastPlayerDisconnected = (game: Game, player: Player) => {
+  broadcastPlayerEvent(game, player, 'DISCONNECT');
+};
+
 export const sendPlayerUpdate = (game: Game, player: Player) => {
   WebsocketService.publish(getGamePath(game), {
     objectType: 'COMPANY',
@@ -82,10 +90,6 @@ export const broadcastNewGameEvent = (game: Game) => {
   broadcastGameEvent(game, 'UPDATE', GameMapper.mapFull(game));
 };
 
-export const broadcastGameTickEvent = (game: Game, amount: number) => {
-  broadcastGameEvent(game, 'TICK', { amount });
-};
-
 export default {
   broadcastAddGameEvent,
   broadcastRemoveGameEvent,
@@ -95,5 +99,7 @@ export default {
   broadcastMessageToGeneralChat,
   broadcastMessageToGameChat,
   broadcastNewGameEvent,
-  broadcastGameTickEvent,
+  broadcastPlayerUpdated,
+  broadcastPlayerDisconnected,
+  sendPlayerUpdate,
 };

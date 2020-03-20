@@ -20,6 +20,7 @@ export default {
   mapPreview,
   mapFull: (game: Game) => ({
     ...mapPreview(game),
+    startCountDownTime: game.startCountDownTime,
     players: game.players.map((player) => PlayerMapper.mapPreview(player)),
   }),
 };

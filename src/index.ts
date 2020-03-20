@@ -7,10 +7,11 @@ import routes from './route';
 import Authentication from './auth';
 import {registerWebsocketServer} from "./service/websocket-service";
 import startGameScheduler from './service/game-scheduler';
+import Logging from './logging';
 
 config();
 
-const server = new Hapi.Server({
+export const server = new Hapi.Server({
   debug: {request: ['error']},
   host: '127.0.0.1',
   port: process.env.PORT,
@@ -30,7 +31,8 @@ process.on("unhandledRejection", (reason: any) => {
   console.error(`unhandledRejection ${reason}`);
 });
 
-Authentication.register(server)
+server.register(Logging)
+  .then(() => Authentication.register(server))
   .then(() => server.register(routes, {routes: {prefix: '/api'}}))
   .then(() => registerWebsocketServer(server))
   .then(() => server.start())

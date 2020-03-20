@@ -63,7 +63,7 @@ const connectToGame = {
   method: 'POST',
   path: '/games/{gameId}',
   async handler(request) {
-    return GameService.connectToGame(extractUserFromRequest(request), { ...request.payload, ...request.params });
+    return GameService.connectToGame(extractUserFromRequest(request), { ...request.payload, ...request.params }, request);
   },
   options: {
     validate: {
@@ -100,6 +100,20 @@ const sendChatMessageToGame = {
   },
 };
 
+const setPlayerSolutions = {
+  method: 'POST',
+  path: '/games/{gameId}/solutions',
+  async handler(request, h) {
+    await GameService.setPlayerSolutions(extractUserFromRequest(request), { ...request.payload }, request);
+    return h.response();
+  },
+  options: {
+    validate: {
+      //payload: GameValidator.addGame,
+    },
+  },
+};
+
 export default [
   getScenarios,
   addScenario,
@@ -109,4 +123,5 @@ export default [
   connectToGame,
   sendChatMessageToGeneral,
   sendChatMessageToGame,
+  setPlayerSolutions,
 ];

@@ -11,6 +11,8 @@ export class PlayerRepository extends Repository<Player> {
       },
       relations: [
         'companyPeriods',
+        'game',
+        'user',
       ],
     })
   }
