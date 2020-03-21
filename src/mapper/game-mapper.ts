@@ -10,7 +10,7 @@ const mapPreview = (game: Game) => ({
   currentPlayers: (game.players && game.players.length) || 0,
   locked: !!game.password,
   tournament: game.tournament,
-  scenario: ScenarioMapper.map(game.scenario),
+  scenario: game.scenario && ScenarioMapper.map(game.scenario) || null,
   state: game.state,
   currentPeriod: game.currentPeriod,
   players: (game.players && game.players.map((player) => player.userName)) || [],
@@ -18,9 +18,9 @@ const mapPreview = (game: Game) => ({
 
 export default {
   mapPreview,
-  mapFull: (game: Game) => ({
+  mapFull: (game: Game, period: number) => ({
     ...mapPreview(game),
     startCountDownTime: game.startCountDownTime,
-    players: game.players.map((player) => PlayerMapper.mapPreview(player)),
+    players: game.players.map((player) => PlayerMapper.mapPreviewByPeriod(player, period)),
   }),
 };

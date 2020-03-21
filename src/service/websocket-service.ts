@@ -22,10 +22,10 @@ export async function registerWebsocketServer(server: Hapi.Server) {
       },
       async onDisconnection(socket: Socket) {
         console.log('Client disconnected: ', socket.auth.credentials.user);
-        await GameService.leftFromGame({
+       /* await GameService.leftFromGame({
           userName: socket.auth.credentials.user,
           isForce: false,
-        });
+        });*/
       },
     }
   });

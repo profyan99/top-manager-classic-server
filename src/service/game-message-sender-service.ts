@@ -14,11 +14,11 @@ const broadcastGamePreviewEvent = (game: Game, eventType: string) => {
   });
 };
 
-const broadcastPlayerEvent = (game: Game, player: Player, eventType: string) => {
+const broadcastPlayerEvent = (game: Game, player: Player, eventType: string, period: number) => {
   WebsocketService.publish(getGamePath(game), {
     objectType: 'PLAYER',
     eventType: eventType,
-    body: PlayerMapper.mapPreview(player),
+    body: PlayerMapper.mapPreviewByPeriod(player, period),
   });
 };
 
@@ -51,27 +51,27 @@ export const broadcastUpdateGameEvent = (game: Game) => {
   broadcastGamePreviewEvent(game, 'UPDATE');
 };
 
-export const broadcastPlayerReconnected = (game: Game, player: Player) => {
-  broadcastPlayerEvent(game, player, 'RECONNECT');
+export const broadcastPlayerReconnected = (game: Game, player: Player, period: number) => {
+  broadcastPlayerEvent(game, player, 'RECONNECT', period);
 };
 
-export const broadcastPlayerConnected = (game: Game, player: Player) => {
-  broadcastPlayerEvent(game, player, 'CONNECT');
+export const broadcastPlayerConnected = (game: Game, player: Player, period: number) => {
+  broadcastPlayerEvent(game, player, 'CONNECT', period);
 };
 
-export const broadcastPlayerUpdated = (game: Game, player: Player) => {
-  broadcastPlayerEvent(game, player, 'UPDATE');
+export const broadcastPlayerUpdated = (game: Game, player: Player, period: number) => {
+  broadcastPlayerEvent(game, player, 'UPDATE', period);
 };
 
-export const broadcastPlayerDisconnected = (game: Game, player: Player) => {
-  broadcastPlayerEvent(game, player, 'DISCONNECT');
+export const broadcastPlayerDisconnected = (game: Game, player: Player, period: number) => {
+  broadcastPlayerEvent(game, player, 'DISCONNECT', period);
 };
 
-export const sendPlayerUpdate = (game: Game, player: Player) => {
+export const sendPlayerUpdate = (game: Game, player: Player, period: number) => {
   WebsocketService.publish(getGamePath(game), {
     objectType: 'COMPANY',
     eventType: 'UPDATE',
-    body: PlayerMapper.mapFull(player),
+    body: PlayerMapper.mapFullByPeriod(player, period),
   }, {
     user: player.userName,
   });
@@ -85,9 +85,14 @@ export const broadcastMessageToGameChat = (game: Game, message) => {
   broadcastMessage(getGamePath(game), message);
 };
 
-export const broadcastNewGameEvent = (game: Game) => {
+export const broadcastNewGamePeriodEvent = (game: Game, period: number) => {
   broadcastUpdateGameEvent(game);
-  broadcastGameEvent(game, 'UPDATE', GameMapper.mapFull(game));
+  broadcastGameEvent(game, 'UPDATE', GameMapper.mapFull(game, period));
+};
+
+export const broadcastEndGamePeriodEvent = (game: Game, period: number) => {
+  broadcastUpdateGameEvent(game);
+  broadcastGameEvent(game, 'END', GameMapper.mapFull(game, period));
 };
 
 export default {
@@ -98,7 +103,8 @@ export default {
   broadcastPlayerConnected,
   broadcastMessageToGeneralChat,
   broadcastMessageToGameChat,
-  broadcastNewGameEvent,
+  broadcastNewGamePeriodEvent,
+  broadcastEndGamePeriodEvent,
   broadcastPlayerUpdated,
   broadcastPlayerDisconnected,
   sendPlayerUpdate,

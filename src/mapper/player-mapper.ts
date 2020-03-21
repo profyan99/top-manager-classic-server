@@ -1,5 +1,4 @@
 import {Player} from "../entity/player/Player";
-import {Column} from "typeorm";
 
 const mapPreviewByPeriod = (player: Player, period: number) => ({
   id: player.id,

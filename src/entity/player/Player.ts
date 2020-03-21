@@ -1,8 +1,8 @@
-import {Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn} from "typeorm";
-import {PlayerState} from "./PlayerState";
-import {User} from "../user/User";
-import {Game} from "../game/Game";
-import {Company} from "./Company";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { PlayerState } from "./PlayerState";
+import { User } from "../user/User";
+import { Game } from "../game/Game";
+import { Company } from "./Company";
 
 @Entity()
 export class Player {

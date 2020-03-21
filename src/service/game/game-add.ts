@@ -5,7 +5,7 @@ import { GamePeriod } from "../../entity/game/GamePeriod";
 const addGame = async (payload) => {
   return getManager().transaction(async (em) => {
     const game: Game = new Game(payload);
-    game.currentPeriod = 1;
+    game.currentPeriod = 0;
 
     const initialGamePeriod: GamePeriod = new GamePeriod();
     initialGamePeriod.period = 0;

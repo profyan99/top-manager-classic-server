@@ -26,13 +26,13 @@ const calculateCompany = (companyOld: Company, companyNew: Company, game: Game) 
   // амортизация
   if (companyNew.investments < companyOld.machineTools * 2) {
     const machines: number = companyOld.machineTools;
-    companyNew.machineTools = machines - (machines * 2 - companyNew.investments) / 40;
+    companyNew.machineTools = Math.round(machines - (machines * 2 - companyNew.investments) / 40);
   }
   companyNew.amortization = companyNew.machineTools * 2;
   companyNew.additionalInvestments = Math.max(0, companyNew.investments - companyNew.amortization);
 
   // мощность след.периода
-  companyNew.futurePower = (companyNew.additionalInvestments + companyNew.machineTools * 40) / 40;
+  companyNew.futurePower = Math.round((companyNew.additionalInvestments + companyNew.machineTools * 40) / 40);
   companyNew.machineTools = companyNew.futurePower;
 
   // используемая мощность в %
@@ -85,7 +85,7 @@ const calculateCompany = (companyOld: Company, companyNew: Company, game: Game) 
   }
 
   // Прибыль до налога...
-  companyNew.tax = Math.max(Math.round(companyNew.profitTax * 0.25), 0.);
+  companyNew.tax = Math.max(Math.round(companyNew.profitTax * 0.25), 0);
   companyNew.netProfit = companyNew.profitTax - companyNew.tax;
 
   if (companyNew.netProfit > 0) {
@@ -93,23 +93,24 @@ const calculateCompany = (companyOld: Company, companyNew: Company, game: Game) 
     companyNew.loan -= loanIncome;
     companyNew.bank += companyNew.netProfit - loanIncome;
   } else {
-    companyNew.bank = companyNew.bank + companyNew.netProfit;
+    companyNew.bank += companyNew.netProfit;
     if (companyNew.bank < 0) {
-      companyNew.loan = companyNew.loan - companyNew.bank;
+      companyNew.loan -= companyNew.bank;
       companyNew.bank = 0;
     }
   }
 
-  companyNew.accumulatedProfit = companyOld.accumulatedProfit + companyNew.netProfit;
+  companyNew.accumulatedProfit += companyNew.netProfit;
   companyNew.activeStorage = Math.round(companyNew.storage * companyNew.productionCost);
   companyNew.kapInvests = companyNew.fullPower * 40;
   companyNew.sumActives = companyOld.kapInvests + companyNew.activeStorage + companyNew.bank;
 
-  companyNew.sumMarketing = companyOld.sumMarketing + companyNew.marketing;
-  companyNew.sumNir = companyOld.sumNir + companyNew.nir;
-  companyNew.sumProduction = companyOld.sumProduction + companyNew.production;
+  companyNew.sumMarketing += companyNew.marketing;
+  companyNew.sumNir += companyNew.nir;
+  companyNew.sumProduction += companyNew.production;
 
   companyNew.initialAccumulatedProfit = companyOld.initialAccumulatedProfit;
+  console.log('CURRENT COMPANY CALCULATION: ',companyNew.initialAccumulatedProfit, companyOld.initialAccumulatedProfit);
   return companyNew;
 };
 

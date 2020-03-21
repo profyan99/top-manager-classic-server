@@ -17,8 +17,6 @@ const updateGame = async (gamePreview: Game, currentTime: number) => {
   }
 
   if (timeDiff >= gamePreview.periodDuration && gamePreview.state === GameState.PLAY) {
-    server.logger().info(`Game ${gamePreview.id}: new period [${gamePreview.currentPeriod + 1}]`);
-
     const game: Game = await getCustomRepository(GameRepository).findOneFull(gamePreview.id);
     return handleNewPeriod(game, currentTime);
   }

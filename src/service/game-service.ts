@@ -16,7 +16,7 @@ import GameMapper from '../mapper/game-mapper';
 import GameHandler from './game';
 import PlayerHandler from './player';
 import UserService from './user-service';
-import MessageSender from './game-message-sender-service';
+import MessageSender, { sendPlayerUpdate } from './game-message-sender-service';
 import { server } from '../index';
 
 const getScenarios = async () => {
@@ -87,8 +87,8 @@ const connectToGame = async (user: User, { gameId, password, companyName }, requ
         throw Boom.badRequest('You have already playing in another game');
       }
       player.timeToEndReload = 0;
-      MessageSender.broadcastPlayerReconnected(game, player);
-      MessageSender.sendPlayerUpdate(game, player);
+      MessageSender.broadcastPlayerReconnected(game, player, game.currentPeriod);
+      MessageSender.sendPlayerUpdate(game, player, game.currentPeriod);
     } else {
       if (game.players.length === game.maxPlayers) {
         throw Boom.badRequest('In game there are no free slots');
@@ -96,6 +96,10 @@ const connectToGame = async (user: User, { gameId, password, companyName }, requ
 
       if (game.state === GameState.PLAY) {
         throw Boom.badRequest('Game has already started');
+      }
+
+      if (game.state === GameState.END) {
+        throw Boom.badRequest('Game has already ended');
       }
 
       if (game.password && password !== game.password) {
@@ -110,11 +114,12 @@ const connectToGame = async (user: User, { gameId, password, companyName }, requ
       game.players.push(player);
       await gameRepository.save(game);
       MessageSender.broadcastUpdateGameEvent(game);
-      MessageSender.broadcastPlayerConnected(game, player);
+      MessageSender.broadcastPlayerConnected(game, player, game.currentPeriod);
+      MessageSender.sendPlayerUpdate(game, player, game.currentPeriod);
 
       request.logger.info(`Player ${player.userName}[${player.id}]: connected to ${game.name}[${game.id}]`);
     }
-    return GameMapper.mapFull(game);
+    return GameMapper.mapFull(game, game.currentPeriod);
   });
 };
 
@@ -134,8 +139,9 @@ const leftFromGame = async ({ userName, isForce }) => {
   }
 
   await PlayerHandler.handlePlayerDisconnect(game, player, isForce);
-  MessageSender.broadcastPlayerDisconnected(game, player);
-  server.logger().info(`Player ${player.userName}[${player.id}]: disconnected from ${game.name}[${game.id}] force: ${isForce}`);
+  MessageSender.broadcastPlayerDisconnected(game, player, game.currentPeriod);
+  MessageSender.broadcastUpdateGameEvent(game);
+  server.logger().info(`Player ${player.userName}: disconnected from ${game.name}[${game.id}] force: ${isForce}`);
 };
 
 const sendChatMessage = async (user: User, { message, gameId }) => {
@@ -175,7 +181,7 @@ const setPlayerSolutions = async (user: User, solutions, request) => {
 
   await PlayerHandler.setPlayerSolutions(game, player, solutions);
   game.playersSolutionsAmount++;
-  MessageSender.broadcastPlayerUpdated(game, player);
+  MessageSender.broadcastPlayerUpdated(game, player, game.currentPeriod);
   request.logger.info(`Player ${player.userName}[${player.id}]: sends solutions. [bankrupt: ${player.isBankrupt}]`, solutions);
 
   const bankruptAmount = game.players.filter((player) => player.isBankrupt).length;
@@ -191,7 +197,7 @@ export const updateGames = async () => {
   const allGames: Game[] = await getCustomRepository(GameRepository).findWithPlayers();
   const currentTime = Date.now();
 
-  for (let game of allGames) {
+  for (const game of allGames) {
     if (isGameNeedToBeRemoved(game, currentTime)) {
       await GameHandler.removeGame(game);
     } else {

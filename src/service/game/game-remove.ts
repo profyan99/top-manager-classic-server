@@ -8,10 +8,12 @@ import { server } from '../../index';
 const removeGame = async (game: Game) => {
   const playerRepository = getRepository(Player);
 
-  server.logger().info(`Game ${game.id}: remove game`, game.players.length);
+  server.logger().info(`Game ${game.id}: remove game [players: ${game.players.length}]`);
 
   broadcastRemoveGameEvent(game);
+
   await Promise.all(game.players.map((player) => playerRepository.remove(player)));
+  game.players = [];
   game.isRemoved = true;
   await getRepository(Game).save(game);
 };

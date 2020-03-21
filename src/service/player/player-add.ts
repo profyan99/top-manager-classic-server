@@ -20,7 +20,7 @@ const addPlayer = async (user: User, game: Game, companyName: string, em: Entity
   player.isBankrupt = false;
 
   const initialCompany = new Company();
-  initialCompany.period = 0;
+  initialCompany.period = -1;
   initialCompany.receivedOrders = 3600 / playersAmount;
   initialCompany.machineTools = 4200 / playersAmount;
 
@@ -39,7 +39,7 @@ const addPlayer = async (user: User, game: Game, companyName: string, em: Entity
   initialCompany.sumNir = 3360 / playersAmount;
 
   const firstPeriodCompany = new Company();
-  firstPeriodCompany.period = 1;
+  firstPeriodCompany.period = 0;
   firstPeriodCompany.price = 30;
   firstPeriodCompany.production = 3360 / playersAmount;
   firstPeriodCompany.marketing = 8400 / playersAmount;
