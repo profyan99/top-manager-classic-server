@@ -1,22 +1,25 @@
-import {Player} from "../entity/player/Player";
+import { Player } from "../entity/player/Player";
 
-const mapPreviewByPeriod = (player: Player, period: number) => ({
-  id: player.id,
-  state: player.state,
-  userName: player.userName,
-  companyName: player.companyName,
-  stats: {
-    rating: player.companyPeriods[period].rating,
-    price: player.companyPeriods[period].price,
-    revenue: player.companyPeriods[period].revenue,
-    netProfit: player.companyPeriods[period].netProfit,
-    accumulatedProfit: player.companyPeriods[period].accumulatedProfit,
-    marketingPart: player.companyPeriods[period].marketingPart,
-  },
-});
+const mapPreviewByPeriod = (player: Player, period: number) => {
+  const company = player.getCompanyByPeriod(period);
+  return {
+    id: player.id,
+    state: player.state,
+    userName: player.userName,
+    companyName: player.companyName,
+    stats: {
+      rating: company.rating,
+      price: company.price,
+      revenue: company.revenue,
+      netProfit: company.netProfit,
+      accumulatedProfit: company.accumulatedProfit,
+      marketingPart: company.marketingPart,
+    },
+  }
+};
 
 const mapFullByPeriod = (player: Player, period: number) => {
-  const company = player.companyPeriods[period];
+  const company = player.getCompanyByPeriod(period);
   return {
     ...mapPreviewByPeriod(player, period),
     company: {
@@ -60,11 +63,7 @@ const mapFullByPeriod = (player: Player, period: number) => {
   }
 };
 
-const currentPeriod = (player) => (player.companyPeriods && (player.companyPeriods.length - 1)) || 0;
-
 export default {
   mapFullByPeriod,
-  mapFull: (player: Player) => mapFullByPeriod(player, currentPeriod(player)),
   mapPreviewByPeriod,
-  mapPreview: (player: Player) => mapPreviewByPeriod(player, currentPeriod(player)),
 };

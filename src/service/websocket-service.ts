@@ -20,12 +20,8 @@ export async function registerWebsocketServer(server: Hapi.Server) {
         isHttpOnly: false,
         endpoint: '/api/nes/auth',
       },
-      async onDisconnection(socket: Socket) {
-        console.log('Client disconnected: ', socket.auth.credentials.user);
-       /* await GameService.leftFromGame({
-          userName: socket.auth.credentials.user,
-          isForce: false,
-        });*/
+      onDisconnection(socket: Socket) {
+        server.logger().info(`User ${socket.auth.credentials.user} disconnected via websocket`);
       },
     }
   });
@@ -54,7 +50,7 @@ export async function registerWebsocketServer(server: Hapi.Server) {
       return Promise.reject();
     },
     async onUnsubscribe(socket: Socket, path, params) {
-      console.log('Client unsubscribed: ', socket.auth.credentials.user);
+      server.logger().info(`User ${socket.auth.credentials.user} unsubscribed from [${path}] via websocket`);
       await GameService.leftFromGame({
         ...params,
         userName: socket.auth.credentials.user,

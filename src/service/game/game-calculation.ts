@@ -1,9 +1,10 @@
+import { EntityManager } from "typeorm";
+
 import { Game } from "../../entity/game/Game";
 import { GamePeriod } from "../../entity/game/GamePeriod";
 import { Company } from "../../entity/player/Company";
 import calculateCompany from "../player/player-calculation";
 import { server } from "../../index";
-import { EntityManager } from "typeorm";
 
 const getBuyersForCompany = (company: Company, period: GamePeriod, industryBuyersAmount: number) => {
   let nir = 0;
@@ -23,16 +24,12 @@ const getBuyersForCompany = (company: Company, period: GamePeriod, industryBuyer
   return Math.round(marketing + price + nir);
 };
 
-const getCompanyByPeriod = (companies: Company[], period: number) => {
-  return companies.find((company) => company.period === period);
-};
-
 const calculateGame = async (game: Game, em: EntityManager) => {
   const currentPeriodNumber: number = game.currentPeriod;
   const period: GamePeriod = new GamePeriod();
   const previousPeriod: GamePeriod = game.periods[game.currentPeriod];
 
-  server.logger().info(`Calculate game: ${game.name}[${game.id}]: period[${game.periods.length}]`);
+  server.logger().info(`Game ${game.name}[${game.id}]: calculating ${game.currentPeriod} period`);
 
   const companies = game.players.filter((player) => !player.isBankrupt);
 
@@ -42,8 +39,8 @@ const calculateGame = async (game: Game, em: EntityManager) => {
   period.summaryProduction = previousPeriod.summaryProduction;
 
   companies.forEach((player) => {
-    const companyData: Company = getCompanyByPeriod(player.companyPeriods, currentPeriodNumber);
-    const companyDataPrevious: Company = getCompanyByPeriod(player.companyPeriods, currentPeriodNumber - 1);
+    const companyData: Company = player.getCompanyByPeriod(currentPeriodNumber);
+    const companyDataPrevious: Company = player.getCompanyByPeriod(currentPeriodNumber - 1);
 
     companyData.price = companyData.price || companyDataPrevious.price;
 
@@ -76,12 +73,11 @@ const calculateGame = async (game: Game, em: EntityManager) => {
   if (period.averagePeriodPrice > 40.) {
     period.totalBuyers = Math.round(period.totalBuyers * 40. / period.averagePeriodPrice);
   }
-  server.logger().info(`Calculate game: ${game.name}[${game.id}]: total consumers [${period.totalBuyers}]`);
 
   // calculate buyers for each company
   let buyersForRichPrice = 0;
   for (const player of companies) {
-    const company: Company = getCompanyByPeriod(player.companyPeriods, currentPeriodNumber);
+    const company: Company =  player.getCompanyByPeriod(currentPeriodNumber);
 
     const companyBuyers: number = getBuyersForCompany(company, period, period.totalBuyers);
     company.receivedOrders = companyBuyers;
@@ -93,7 +89,7 @@ const calculateGame = async (game: Game, em: EntityManager) => {
 
   if (buyersForRichPrice > 0) {
     for (const player of companies) {
-      const company: Company = getCompanyByPeriod(player.companyPeriods, currentPeriodNumber);
+      const company: Company = player.getCompanyByPeriod(currentPeriodNumber);
 
       const additionalCompanyBuyers: number = getBuyersForCompany(company, period, buyersForRichPrice);
       company.receivedOrders += additionalCompanyBuyers;
@@ -103,8 +99,8 @@ const calculateGame = async (game: Game, em: EntityManager) => {
   // calculate players
   for (const player of companies) {
     const currentPeriodCompany: Company = calculateCompany(
-      getCompanyByPeriod(player.companyPeriods, currentPeriodNumber - 1),
-      getCompanyByPeriod(player.companyPeriods, currentPeriodNumber),
+      player.getCompanyByPeriod(currentPeriodNumber - 1),
+      player.getCompanyByPeriod(currentPeriodNumber),
       game
     );
 
@@ -121,24 +117,11 @@ const calculateGame = async (game: Game, em: EntityManager) => {
   period.averagePeriodUsingPower = period.averagePeriodUsingPower / companies.length;
 
   for (const player of companies) {
-    const companyData: Company = getCompanyByPeriod(player.companyPeriods, currentPeriodNumber);
+    const companyData: Company = player.getCompanyByPeriod(currentPeriodNumber);
 
     if (period.totalBuyers > 0) {
       companyData.marketingPart = companyData.receivedOrders / period.totalBuyers * 100.;
     }
-
-    console.log('\ncompanyData.accumulatedProfit: ', companyData.accumulatedProfit);
-    console.log('companyData.initialAccumulatedProfit: ', companyData.initialAccumulatedProfit);
-
-    console.log('\nperiod.summaryMarketing: ', period.summaryMarketing);
-    console.log('period.summaryNir: ', period.summaryNir);
-
-    console.log('\nperiod.totalBuyers: ', period.totalBuyers);
-    console.log('companiesAmount: ', companies.length);
-
-    console.log('\ncompanyData.sales: ', companyData.sales);
-    console.log('period.totalSales: ', period.totalSales);
-    console.log('previousPeriod.totalSales: ', previousPeriod.totalSales);
 
     const companiesAmount = companies.length;
     const ratingByAccumulatedProfit =
@@ -160,7 +143,7 @@ const calculateGame = async (game: Game, em: EntityManager) => {
     const sales: number = companyData.sales;
     let grow = 0;
     if(sales > 0 && period.totalSales > 0) {
-      const salesPrevious = getCompanyByPeriod(player.companyPeriods, currentPeriodNumber).sales;
+      const salesPrevious = player.getCompanyByPeriod(currentPeriodNumber - 1).sales;
       grow = salesPrevious ? 10. * sales / salesPrevious / period.totalSales * previousPeriod.totalSales : sales;
     }
     const ratingByGrow: number = Math.min(grow, 20.);
@@ -182,8 +165,10 @@ const calculateGame = async (game: Game, em: EntityManager) => {
     );
     await em.save(companyData);
 
-    server.logger().info(`Game ${game.name}[${game.id}] {${game.currentPeriod}}:: player ${player.userName}[${player.id}] rating: ${companyData.rating}`);
+    server.logger().info(`Game ${game.name}[${game.id}]: calculated player: `, companyData);
   }
+
+  server.logger().info(`Game ${game.name}[${game.id}]: calculated period: `, period);
   return em.save(period);
 };
 

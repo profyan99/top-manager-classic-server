@@ -110,7 +110,6 @@ const calculateCompany = (companyOld: Company, companyNew: Company, game: Game) 
   companyNew.sumProduction += companyNew.production;
 
   companyNew.initialAccumulatedProfit = companyOld.initialAccumulatedProfit;
-  console.log('CURRENT COMPANY CALCULATION: ',companyNew.initialAccumulatedProfit, companyOld.initialAccumulatedProfit);
   return companyNew;
 };
 

@@ -1,5 +1,6 @@
-import { Game } from "../../entity/game/Game";
 import { getManager } from "typeorm";
+
+import { Game } from "../../entity/game/Game";
 import { GamePeriod } from "../../entity/game/GamePeriod";
 
 const addGame = async (payload) => {

@@ -31,6 +31,9 @@ export class Player {
   @Column({ default: true })
   isConnected: boolean;
 
+  @Column({ default: false })
+  isRemoved: boolean;
+
   @OneToOne(type => User)
   @JoinColumn()
   user: User;
@@ -40,5 +43,9 @@ export class Player {
 
   @OneToMany(type => Company, company => company.player)
   companyPeriods: Company[];
+
+  public getCompanyByPeriod(period: number) {
+    return this.companyPeriods.find((company) => company.period === period);
+  }
 
 }

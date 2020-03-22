@@ -13,6 +13,7 @@ const mapPreview = (game: Game) => ({
   scenario: game.scenario && ScenarioMapper.map(game.scenario) || null,
   state: game.state,
   currentPeriod: game.currentPeriod,
+  periodDuration: game.periodDuration,
   players: (game.players && game.players.map((player) => player.userName)) || [],
 });
 
@@ -21,6 +22,6 @@ export default {
   mapFull: (game: Game, period: number) => ({
     ...mapPreview(game),
     startCountDownTime: game.startCountDownTime,
-    players: game.players.map((player) => PlayerMapper.mapPreviewByPeriod(player, period)),
+    players: game.players.map((player) => PlayerMapper.mapPreviewByPeriod(player, period - 1)),
   }),
 };

@@ -19,7 +19,6 @@ const handleNewPeriod = async (game: Game, currentTime: number) => {
   return await getManager().transaction(async em => {
     const gameRepository = em.getCustomRepository(GameRepository);
 
-    server.logger().info(`Game ${game.id}: calculation period [${game.currentPeriod}]`);
     await removeInactivePlayers(game.players, currentTime, game.id, em);
 
     game.isSendSolutionsAllowed = false;
@@ -28,12 +27,12 @@ const handleNewPeriod = async (game: Game, currentTime: number) => {
     const newGamePeriod = await calculateGame(game, em);
     game.periods.push(newGamePeriod);
 
-    let gamePayloadSendingPeriod;
+    let playerCompanyPeriod;
     if (game.currentPeriod >= game.maxPeriods) {
       game.state = GameState.END;
-      gamePayloadSendingPeriod = game.currentPeriod + 1;
-      broadcastEndGamePeriodEvent(game, gamePayloadSendingPeriod);
-      server.logger().info(`Game ${game.id}: end [${game.currentPeriod} / ${game.maxPeriods}]`);
+      playerCompanyPeriod = game.currentPeriod + 1;
+      broadcastEndGamePeriodEvent(game, playerCompanyPeriod);
+      server.logger().info(`Game ${game.name}[${game.id}]: was ended`);
     } else {
       game.currentPeriod = Math.min(game.currentPeriod + 1, game.maxPeriods);
       game.isSendSolutionsAllowed = true;
@@ -44,14 +43,13 @@ const handleNewPeriod = async (game: Game, currentTime: number) => {
         player.companyPeriods.push(newCompany);
         await em.save(player);
       }
-      gamePayloadSendingPeriod = game.currentPeriod;
       game.startCountDownTime = Date.now();
-      broadcastNewGamePeriodEvent(game, gamePayloadSendingPeriod);
-      server.logger().info(`Game ${game.id}: new period [${game.currentPeriod}]`);
+      playerCompanyPeriod = game.currentPeriod;
+      broadcastNewGamePeriodEvent(game, playerCompanyPeriod);
+      server.logger().info(`Game ${game.name}[${game.id}]: new period [${game.currentPeriod}]`);
     }
 
-    game.players.forEach((player) => sendPlayerUpdate(game, player, gamePayloadSendingPeriod));
-
+    game.players.forEach((player) => sendPlayerUpdate(game, player, playerCompanyPeriod - 1));
     return gameRepository.save(game);
   });
 };

@@ -1,21 +1,23 @@
-import { getRepository } from "typeorm";
+import { getCustomRepository, getRepository } from "typeorm";
 
 import { Game } from "../../entity/game/Game";
 import { broadcastRemoveGameEvent } from "../game-message-sender-service";
-import { Player } from "../../entity/player/Player";
 import { server } from '../../index';
+import { PlayerRepository } from "../../repository/player-repository";
 
 const removeGame = async (game: Game) => {
-  const playerRepository = getRepository(Player);
+  const playerRepository = getCustomRepository(PlayerRepository);
 
   server.logger().info(`Game ${game.id}: remove game [players: ${game.players.length}]`);
 
   broadcastRemoveGameEvent(game);
 
-  await Promise.all(game.players.map((player) => playerRepository.remove(player)));
-  game.players = [];
+  await Promise.all(game.players.map((player) => {
+    player.isRemoved = true;
+    return playerRepository.save(player);
+  }));
   game.isRemoved = true;
-  await getRepository(Game).save(game);
+  return getRepository(Game).save(game);
 };
 
 export default removeGame;

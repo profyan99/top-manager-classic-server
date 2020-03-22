@@ -5,10 +5,11 @@ import {User} from "../../entity/user/User";
 import {Player} from "../../entity/player/Player";
 import {PlayerState} from "../../entity/player/PlayerState";
 import {Company} from "../../entity/player/Company";
+import { PlayerRepository } from "../../repository/player-repository";
 
 const addPlayer = async (user: User, game: Game, companyName: string, em: EntityManager): Promise<Player> => {
   const playersAmount = game.maxPlayers;
-  const playerRepository = em.getRepository(Player);
+  const playerRepository = em.getCustomRepository(PlayerRepository);
   const companyRepository = em.getRepository(Company);
 
   const player: Player = new Player();

@@ -16,8 +16,9 @@ import GameMapper from '../mapper/game-mapper';
 import GameHandler from './game';
 import PlayerHandler from './player';
 import UserService from './user-service';
-import MessageSender, { sendPlayerUpdate } from './game-message-sender-service';
+import MessageSender from './game-message-sender-service';
 import { server } from '../index';
+import { ERRORS } from "../utils/errors";
 
 const getScenarios = async () => {
   return (await getRepository(Scenario).find())
@@ -28,7 +29,7 @@ const addScenario = async (user: User, payload) => {
   const scenarioRepository: Repository<Scenario> = getRepository(Scenario);
 
   if (await scenarioRepository.findOne({ where: { name: payload.name } })) {
-    throw Boom.badRequest('Scenario with that name has already existed');
+    throw Boom.badRequest(ERRORS.SCENARIO.EXISTED);
   }
 
   const scenario: Scenario = new Scenario(payload);
@@ -42,7 +43,7 @@ const addGame = async (payload) => {
   const scenarioName = payload.scenario || process.env.DEFAULT_SCENARIO;
   const scenario: Scenario = await scenarioRepository.findOne({ where: { name: scenarioName } });
   if (!scenario) {
-    throw Boom.badRequest('Invalid scenario');
+    throw Boom.badRequest(ERRORS.SCENARIO.INVALID);
   }
   payload.startCountDownTime = Date.now();
   payload.scenario = scenario;
@@ -52,17 +53,17 @@ const addGame = async (payload) => {
 };
 
 const deleteGame = async (user: User, { gameId }) => {
-  const gameRepository: Repository<Game> = getRepository(Game);
+  const gameRepository = getCustomRepository(GameRepository);
   if (!UserService.isAdmin(user)) {
-    throw Boom.badRequest('You don\'t have permissions to do that action');
+    throw Boom.badRequest(ERRORS.ADMIN.PERMISSIONS);
   }
 
   const game: Game = await gameRepository.findOne(gameId);
   if (!game) {
-    throw Boom.badRequest('Invalid game id');
+    throw Boom.badRequest(ERRORS.GAME.INVALID);
   }
 
-  await gameRepository.remove(game);
+  await GameHandler.removeGame(game);
   MessageSender.broadcastRemoveGameEvent(game);
 };
 
@@ -78,36 +79,36 @@ const connectToGame = async (user: User, { gameId, password, companyName }, requ
 
     const game = await gameRepository.findOneFull(gameId);
     if (!game) {
-      throw Boom.badRequest('Invalid game id');
+      throw Boom.badRequest(ERRORS.GAME.INVALID);
     }
 
     let player: Player = await playerRepository.findOneFullByUserName(user.userName);
     if (player) {
       if (!game.players.some((playerInGame) => playerInGame.userName === player.userName)) {
-        throw Boom.badRequest('You have already playing in another game');
+        throw Boom.badRequest(ERRORS.GAME.ALREADY_PLAYING);
       }
       player.timeToEndReload = 0;
-      MessageSender.broadcastPlayerReconnected(game, player, game.currentPeriod);
-      MessageSender.sendPlayerUpdate(game, player, game.currentPeriod);
+      MessageSender.broadcastPlayerReconnected(game, player, game.currentPeriod - 1);
+      MessageSender.sendPlayerUpdate(game, player, game.currentPeriod - 1);
     } else {
-      if (game.players.length === game.maxPlayers) {
-        throw Boom.badRequest('In game there are no free slots');
-      }
-
       if (game.state === GameState.PLAY) {
-        throw Boom.badRequest('Game has already started');
+        throw Boom.badRequest(ERRORS.GAME.STARTED);
       }
 
       if (game.state === GameState.END) {
-        throw Boom.badRequest('Game has already ended');
+        throw Boom.badRequest(ERRORS.GAME.ENDED);
+      }
+
+      if (game.players.length === game.maxPlayers) {
+        throw Boom.badRequest(ERRORS.GAME.FULL);
       }
 
       if (game.password && password !== game.password) {
-        throw Boom.badRequest('Invalid game password');
+        throw Boom.badRequest(ERRORS.GAME.INVALID_PASSWORD);
       }
 
       if (game.players.some((player) => player.companyName === companyName)) {
-        throw Boom.badRequest('Company with this name has already registered');
+        throw Boom.badRequest(ERRORS.GAME.COMPANY_EXISTED);
       }
       player = await PlayerHandler.addPlayer(user, game, companyName, em);
       game.players = game.players || [];
@@ -158,7 +159,7 @@ const sendChatMessage = async (user: User, { message, gameId }) => {
   if (gameId) {
     const game = await getRepository(Game).findOne(gameId);
     if (!game) {
-      throw Boom.badRequest('Invalid game id');
+      throw Boom.badRequest(ERRORS.GAME.INVALID);
     }
     MessageSender.broadcastMessageToGameChat(game, chatMessage);
   } else {
@@ -171,12 +172,12 @@ const setPlayerSolutions = async (user: User, solutions, request) => {
 
   const player: Player = await playerRepository.findOneFullByUserName(user.userName);
   if (!player) {
-    throw Boom.badRequest('You are not playing now');
+    throw Boom.badRequest(ERRORS.GAME.NOT_PLAYING);
   }
 
   const game: Game = player.game;
   if (player.state !== PlayerState.THINK || !game.isSendSolutionsAllowed || player.isBankrupt) {
-    throw Boom.badRequest("You can't send solutions");
+    throw Boom.badRequest(ERRORS.GAME.SOLUTIONS);
   }
 
   await PlayerHandler.setPlayerSolutions(game, player, solutions);
@@ -191,7 +192,8 @@ const setPlayerSolutions = async (user: User, solutions, request) => {
 };
 
 const isGameNeedToBeRemoved = (game: Game, currentTime: number) =>
-  game.players.length === 0 && (currentTime - game.startCountDownTime) / 1000 >= game.periodDuration;
+  game.players.length === 0
+  && (game.state !== GameState.PREPARE || (currentTime - game.startCountDownTime) / 1000 >= game.periodDuration);
 
 export const updateGames = async () => {
   const allGames: Game[] = await getCustomRepository(GameRepository).findWithPlayers();

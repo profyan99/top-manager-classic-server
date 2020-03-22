@@ -1,10 +1,11 @@
-import { getRepository } from "typeorm";
+import { getCustomRepository } from "typeorm";
 
 import { Player } from "../../entity/player/Player";
 import { Company } from "../../entity/player/Company";
 import { PlayerState } from "../../entity/player/PlayerState";
 import { Game } from "../../entity/game/Game";
 import { Scenario } from "../../entity/game/Scenario";
+import { PlayerRepository } from "../../repository/player-repository";
 
 const setPlayerSolutions = async (game: Game, player: Player, solutions) => {
   const company: Company = player.companyPeriods[player.companyPeriods.length - 1];
@@ -44,9 +45,10 @@ const setPlayerSolutions = async (game: Game, player: Player, solutions) => {
   company.marketing = solutions.marketing;
   company.investments = solutions.investments;
   company.nir = solutions.nir;
+
   player.state = PlayerState.WAIT;
 
-  return getRepository(Player).save(player);
+  return getCustomRepository(PlayerRepository).save(player);
 };
 
 export default setPlayerSolutions;

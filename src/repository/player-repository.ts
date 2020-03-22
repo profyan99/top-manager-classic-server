@@ -8,6 +8,7 @@ export class PlayerRepository extends Repository<Player> {
     return this.findOne({
       where: {
         userName,
+        isRemoved: false,
       },
       relations: [
         'companyPeriods',
