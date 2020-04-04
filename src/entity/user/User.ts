@@ -45,6 +45,9 @@ export class User {
   @Column(type => UserGameStats)
   gameStats: UserGameStats;
 
+  @Column({ default: true })
+  isConnected: boolean;
+
   constructor(data?: { email; userName; ip; lastLogIn; password; avatar; roles; gameStats; socialUser; refreshToken }) {
     if (data) {
       this.email = data.email;
@@ -57,6 +60,7 @@ export class User {
       this.gameStats = data.gameStats;
       this.socialUser = data.socialUser;
       this.refreshToken = data.refreshToken;
+      this.isConnected = true;
     }
   }
 }

@@ -7,6 +7,7 @@ const mapPreviewByPeriod = (player: Player, period: number) => {
     state: player.state,
     userName: player.userName,
     companyName: player.companyName,
+    isBankrupt: player.isBankrupt,
     stats: {
       rating: company.rating,
       price: company.price,

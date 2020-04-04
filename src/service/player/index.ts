@@ -1,13 +1,5 @@
-import addPlayer from "./player-add";
-import addNewCompany from "./player-add-new-company";
-import calculateCompany from "./player-calculation";
-import handlePlayerDisconnect from "./player-disconnect";
-import setPlayerSolutions from "./player-set-solutions";
-
-export default {
-  addPlayer,
-  handlePlayerDisconnect,
-  addNewCompany,
-  calculateCompany,
-  setPlayerSolutions,
-};
+export { default as addPlayer } from "./player-add";
+export { default as addNewCompany } from "./player-add-new-company";
+export { default as calculatePlayer } from "./player-calculation";
+export { default as handlePlayerDisconnect } from "./player-disconnect";
+export { default as setPlayerSolutions } from "./player-set-solutions";

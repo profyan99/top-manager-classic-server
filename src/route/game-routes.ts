@@ -37,7 +37,7 @@ const addGame = {
   },
 };
 
-const deleteGame = {
+/*const deleteGame = { //TODO another route for admins
   method: 'DELETE',
   path: '/games/{gameId}',
   async handler(request, h) {
@@ -49,7 +49,7 @@ const deleteGame = {
       //params: GameValidator.deleteGame,
     },
   },
-};
+};*/
 
 const getGames = {
   method: 'GET',
@@ -64,6 +64,20 @@ const connectToGame = {
   path: '/games/{gameId}',
   async handler(request) {
     return GameService.connectToGame(extractUserFromRequest(request), { ...request.payload, ...request.params }, request);
+  },
+  options: {
+    validate: {
+      //payload: GameValidator.addGame,
+    },
+  },
+};
+
+const disconnectFromGame = {
+  method: 'DELETE',
+  path: '/games/{gameId}',
+  async handler(request, h) {
+    await GameService.disconnectFromGame(extractUserFromRequest(request), { ...request.params });
+    return h.response();
   },
   options: {
     validate: {
@@ -118,9 +132,9 @@ export default [
   getScenarios,
   addScenario,
   addGame,
-  deleteGame,
   getGames,
   connectToGame,
+  disconnectFromGame,
   sendChatMessageToGeneral,
   sendChatMessageToGame,
   setPlayerSolutions,

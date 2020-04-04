@@ -28,8 +28,9 @@ const handleNewPeriod = async (game: Game, currentTime: number) => {
     game.periods.push(newGamePeriod);
 
     let playerCompanyPeriod;
-    if (game.currentPeriod >= game.maxPeriods) {
+    if (game.currentPeriod >= game.maxPeriods || game.getBankruptCount() >= game.players.length) {
       game.state = GameState.END;
+      game.currentPeriod = game.maxPeriods;
       playerCompanyPeriod = game.currentPeriod + 1;
       broadcastEndGamePeriodEvent(game, playerCompanyPeriod);
       server.logger().info(`Game ${game.name}[${game.id}]: was ended`);

@@ -6,6 +6,9 @@ import { getCustomRepository } from "typeorm";
 import { GameRepository } from "../../repository/game-repository";
 import GameHandler from "./index";
 
+const isAllSendSolutions = (game: Game): boolean =>
+  game.playersSolutionsAmount + game.getBankruptCount() >= game.players.length;
+
 const updateGame = async (gamePreview: Game, currentTime: number) => {
   const timeDiff = Math.round((currentTime - gamePreview.startCountDownTime) / 1000);
 
@@ -16,7 +19,7 @@ const updateGame = async (gamePreview: Game, currentTime: number) => {
     return GameHandler.handleNewPeriod(game, currentTime);
   }
 
-  if (timeDiff >= gamePreview.periodDuration && gamePreview.state === GameState.PLAY) {
+  if ((timeDiff >= gamePreview.periodDuration || isAllSendSolutions(gamePreview)) && gamePreview.state === GameState.PLAY) {
     const game: Game = await getCustomRepository(GameRepository).findOneFull(gamePreview.id);
     return handleNewPeriod(game, currentTime);
   }

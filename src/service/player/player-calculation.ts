@@ -1,9 +1,14 @@
 import { Company } from "../../entity/player/Company";
 import { Game } from "../../entity/game/Game";
 import { Scenario } from "../../entity/game/Scenario";
+import { Player } from '../../entity/player/Player';
 
-const calculateCompany = (companyOld: Company, companyNew: Company, game: Game) => {
+const calculatePlayer = (player: Player, game: Game): Company => {
+  const companyOld: Company = player.getCompanyByPeriod(game.currentPeriod - 1);
+  const companyNew: Company = player.getCompanyByPeriod(game.currentPeriod);
   const scenario: Scenario = game.scenario;
+
+  console.log(`calculateCompany of ${player.companyName}: `, companyOld, companyNew);
 
   companyNew.storageCost = companyOld.storage; // стоимость хранения = склад
   companyNew.fullPower = companyOld.futurePower;
@@ -24,15 +29,19 @@ const calculateCompany = (companyOld: Company, companyNew: Company, game: Game) 
   companyNew.revenue = companyNew.price * companyNew.sales;
 
   // амортизация
-  if (companyNew.investments < companyOld.machineTools * 2) {
+  if (companyNew.investments < companyOld.machineTools * scenario.deprecationFactor) {
     const machines: number = companyOld.machineTools;
-    companyNew.machineTools = Math.round(machines - (machines * 2 - companyNew.investments) / 40);
+    companyNew.machineTools = Math.round(
+      machines - (machines * scenario.deprecationFactor - companyNew.investments) / scenario.machineCost
+    );
   }
-  companyNew.amortization = companyNew.machineTools * 2;
+  companyNew.amortization = companyNew.machineTools * scenario.deprecationFactor;
   companyNew.additionalInvestments = Math.max(0, companyNew.investments - companyNew.amortization);
 
   // мощность след.периода
-  companyNew.futurePower = Math.round((companyNew.additionalInvestments + companyNew.machineTools * 40) / 40);
+  companyNew.futurePower = Math.round(
+    (companyNew.additionalInvestments + companyNew.machineTools * scenario.machineCost) / scenario.machineCost
+  );
   companyNew.machineTools = companyNew.futurePower;
 
   // используемая мощность в %
@@ -100,7 +109,7 @@ const calculateCompany = (companyOld: Company, companyNew: Company, game: Game) 
     }
   }
 
-  companyNew.accumulatedProfit += companyNew.netProfit;
+  companyNew.accumulatedProfit = companyOld.accumulatedProfit + companyNew.netProfit;
   companyNew.activeStorage = Math.round(companyNew.storage * companyNew.productionCost);
   companyNew.kapInvests = companyNew.fullPower * 40;
   companyNew.sumActives = companyOld.kapInvests + companyNew.activeStorage + companyNew.bank;
@@ -113,4 +122,4 @@ const calculateCompany = (companyOld: Company, companyNew: Company, game: Game) 
   return companyNew;
 };
 
-export default calculateCompany;
+export default calculatePlayer;

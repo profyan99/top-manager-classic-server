@@ -25,7 +25,7 @@ export class Player {
   @Column({ default: false })
   isBankrupt: boolean;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'bigint' })
   timeToEndReload: number;
 
   @Column({ default: true })

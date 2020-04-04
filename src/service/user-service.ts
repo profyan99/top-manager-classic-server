@@ -126,6 +126,15 @@ export const addPlayerLeaveGame = async (user: User, em?: EntityManager) => {
   await userRepository.save(user);
 };
 
+const setUserOnline = async (user: User, isConnected: boolean, em? : EntityManager) => {
+  const userRepository = em ? em.getRepository(User) : getRepository(User);
+  if(!user) {
+    return;
+  }
+  user.isConnected = isConnected;
+  await userRepository.save(user);
+};
+
 export default {
   addUser,
   getCurrentUser,
@@ -137,4 +146,5 @@ export default {
   getUserByRefreshToken,
   isAdmin,
   addPlayerLeaveGame,
+  setUserOnline,
 }

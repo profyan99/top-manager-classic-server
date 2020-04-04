@@ -61,6 +61,10 @@ export class Game {
   public constructor(props: GameProps) {
     Object.assign(this, props);
   }
+
+  public getBankruptCount() {
+    return this.players.filter((player) => player.isBankrupt).length;
+  }
 }
 
 export interface GameProps {
