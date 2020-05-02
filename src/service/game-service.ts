@@ -89,6 +89,7 @@ const connectToGame = async (user: User, { gameId, password, companyName }, requ
         throw Boom.badRequest(ERRORS.GAME.ALREADY_PLAYING);
       }
       player.timeToEndReload = 0;
+      await playerRepository.save(player);
       MessageSender.broadcastPlayerReconnected(game, player, game.currentPeriod - 1);
     } else {
       if (game.state === GameState.PLAY) {
@@ -116,6 +117,7 @@ const connectToGame = async (user: User, { gameId, password, companyName }, requ
       await gameRepository.save(game);
       MessageSender.broadcastUpdateGameEvent(game);
       MessageSender.broadcastPlayerConnected(game, player, game.currentPeriod);
+      console.log('Company name: ', player.companyName, companyName);
       request.logger.info(`Player ${player.userName}[${player.id}]: connected to ${game.name}[${game.id}]`);
     }
     return {

@@ -19,7 +19,7 @@ const handleNewPeriod = async (game: Game, currentTime: number) => {
   return await getManager().transaction(async em => {
     const gameRepository = em.getCustomRepository(GameRepository);
 
-    await removeInactivePlayers(game.players, currentTime, game.id, em);
+    await removeInactivePlayers(game, currentTime, em);
 
     game.isSendSolutionsAllowed = false;
     game.playersSolutionsAmount = 0;

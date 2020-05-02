@@ -1,18 +1,24 @@
 import { EntityManager } from "typeorm";
 
-import { Player } from "../../entity/player/Player";
 import { addPlayerLeaveGame } from "../user-service";
 import { server } from "../../index";
 import { PlayerRepository } from "../../repository/player-repository";
+import { Game } from '../../entity/game/Game';
 
-const removeInactivePlayers = async (players: Player[], currentTime: number, gameId: number, em: EntityManager) => {
+const removeInactivePlayers = async (game: Game, currentTime: number, em: EntityManager) => {
   const playerRepository = em.getCustomRepository(PlayerRepository);
-  const removedPlayers = players
+  const removedPlayers = game.players
     .filter((player) => !player.isConnected && player.timeToEndReload && player.timeToEndReload < currentTime)
-    .map((player) => [playerRepository.remove(player), addPlayerLeaveGame(player.user, em)]);
+    .map((player) => {
+      game.players = game.players.filter((gamePlayer) => gamePlayer.id !== player.id);
+      return[
+        playerRepository.remove(player),
+        addPlayerLeaveGame(player.user, em)
+      ];
+    });
 
   if (removedPlayers.length) {
-    server.logger().info(`Game ${gameId}: removed [${removedPlayers.length}] inactive players`);
+    server.logger().info(`Game ${game.id}: removed [${removedPlayers.length}] inactive players`);
   }
   await Promise.all(removedPlayers);
 };

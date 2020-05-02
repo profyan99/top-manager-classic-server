@@ -122,8 +122,9 @@ const loginUser = async ({userName, password}) => {
 
 export const addPlayerLeaveGame = async (user: User, em?: EntityManager) => {
   const userRepository = em ? em.getRepository(User) : getRepository(User);
-  user.gameStats.leaveGameAmount++;
-  await userRepository.save(user);
+  const fullUser = await userRepository.findOne(user.id);
+  fullUser.gameStats.leaveGameAmount++;
+  await userRepository.save(fullUser);
 };
 
 const setUserOnline = async (user: User, isConnected: boolean, em? : EntityManager) => {

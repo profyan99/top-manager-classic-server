@@ -20,8 +20,8 @@ const userRoutes = [
   {
     method: 'POST',
     path: '/signin',
-    async handler(request, h) {
-      return await UserService.loginUser(request.payload);
+    handler(request) {
+      return UserService.loginUser(request.payload);
     },
     options: {
       auth: false,

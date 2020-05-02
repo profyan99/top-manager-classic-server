@@ -6,7 +6,7 @@ interface ValidationPayload {
   credentials?: { profile: User; user: string };
 }
 
-export default async (decoded, request, h): Promise<ValidationPayload> => {
+export default async (decoded): Promise<ValidationPayload> => {
   const user = await UserService.getUserById(decoded['id']);
   if (!user) {
     return {
