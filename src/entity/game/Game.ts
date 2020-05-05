@@ -3,6 +3,7 @@ import {Scenario} from "./Scenario";
 import {GameState} from "./GameState";
 import {Player} from "../player/Player";
 import {GamePeriod} from "./GamePeriod";
+import { User } from '../user/User';
 
 @Entity()
 export class Game {
@@ -45,6 +46,9 @@ export class Game {
 
   @OneToMany(type => GamePeriod, gamePeriod => gamePeriod.game)
   periods: GamePeriod[];
+
+  @ManyToOne(type => User)
+  owner: User;
 
   @Column({ type: 'bigint' })
   startCountDownTime: number;

@@ -95,6 +95,22 @@ export const broadcastEndGamePeriodEvent = (game: Game, period: number) => {
   broadcastGameEvent(game, 'END', GameMapper.mapFull(game, period));
 };
 
+export const broadcastGamesMetaDataUpdateEvent = (payload: object) => {
+  WebsocketService.publish(process.env.GAME_LIST_ROUTE, {
+    objectType: 'PLAYERS_ONLINE',
+    eventType: 'UPDATE',
+    body: payload,
+  });
+};
+
+export const broadcastRestartGameEvent = (game: Game, payload: object) => {
+  broadcastGameEvent(game, 'RESTART', payload);
+};
+
+export const broadcastRejectRestartGameEvent = (game: Game, payload: object) => {
+  broadcastGameEvent(game, 'RESTART_REJECT', payload);
+};
+
 export default {
   broadcastAddGameEvent,
   broadcastRemoveGameEvent,
@@ -107,5 +123,8 @@ export default {
   broadcastEndGamePeriodEvent,
   broadcastPlayerUpdated,
   broadcastPlayerDisconnected,
+  broadcastGamesMetaDataUpdateEvent,
+  broadcastRestartGameEvent,
+  broadcastRejectRestartGameEvent,
   sendPlayerUpdate,
 };

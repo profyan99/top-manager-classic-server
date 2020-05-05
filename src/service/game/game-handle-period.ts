@@ -14,6 +14,7 @@ import calculateGame from "./game-calculation";
 import removeInactivePlayers from "./game-remove-players";
 import { Company } from "../../entity/player/Company";
 import { server } from "../../index";
+import endGame from './game-end';
 
 const handleNewPeriod = async (game: Game, currentTime: number) => {
   return await getManager().transaction(async em => {
@@ -27,13 +28,8 @@ const handleNewPeriod = async (game: Game, currentTime: number) => {
     const newGamePeriod = await calculateGame(game, em);
     game.periods.push(newGamePeriod);
 
-    let playerCompanyPeriod;
     if (game.currentPeriod >= game.maxPeriods || game.getBankruptCount() >= game.players.length) {
-      game.state = GameState.END;
-      game.currentPeriod = game.maxPeriods;
-      playerCompanyPeriod = game.currentPeriod + 1;
-      broadcastEndGamePeriodEvent(game, playerCompanyPeriod);
-      server.logger().info(`Game ${game.name}[${game.id}]: was ended`);
+      await endGame(game, em);
     } else {
       game.currentPeriod = Math.min(game.currentPeriod + 1, game.maxPeriods);
       game.isSendSolutionsAllowed = true;
@@ -45,12 +41,10 @@ const handleNewPeriod = async (game: Game, currentTime: number) => {
         await em.save(player);
       }
       game.startCountDownTime = Date.now();
-      playerCompanyPeriod = game.currentPeriod;
-      broadcastNewGamePeriodEvent(game, playerCompanyPeriod);
+      broadcastNewGamePeriodEvent(game, game.currentPeriod);
+      game.players.forEach((player) => sendPlayerUpdate(game, player, game.currentPeriod - 1));
       server.logger().info(`Game ${game.name}[${game.id}]: new period [${game.currentPeriod}]`);
     }
-
-    game.players.forEach((player) => sendPlayerUpdate(game, player, playerCompanyPeriod - 1));
     return gameRepository.save(game);
   });
 };

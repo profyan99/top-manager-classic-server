@@ -14,7 +14,10 @@ export const ERRORS = {
     COMPANY_EXISTED: 'Компания с таким именем уже создана',
     NOT_PLAYING: 'Вы не играете в этой игре',
     SOLUTIONS: 'Вы не можете отправлять решения за период',
-    INVALID_GAME_PLAYER_ASSOCIATION: 'Вы не играете в этой игре'
+    INVALID_GAME_PLAYER_ASSOCIATION: 'Вы не играете в этой игре',
+    NOT_OWNER: 'Только создатель игры может начать новую игру',
+    RESTART_NOT_ALLOWED: 'Новую игру начать можно только тогда, когда кончится текущая',
+    COMPANY_NAME_ALREADY_SET: 'Имя компании уже задано',
   },
   USER: {
     EXISTED: {

@@ -36,7 +36,14 @@ const userRoutes = [
     handler(request) {
       return UserService.getCurrentUser(extractUserFromRequest(request));
     }
-  }
+  },
+  {
+    method: 'GET',
+    path: '/users',
+    async handler(): Promise<any> {
+      return UserService.getOnlineUsers();
+    },
+  },
 ];
 
 export default userRoutes;

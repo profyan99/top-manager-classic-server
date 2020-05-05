@@ -17,7 +17,7 @@ export class UserGameStats {
   maxRevenue: number;
 
   @Column()
-  maxRIF: number;
+  maxRating: number;
 
   @Column()
   hoursInGame: number;
@@ -34,7 +34,7 @@ export class UserGameStats {
     this.loseAmount = 0;
     this.tournamentAmount = 0;
     this.maxRevenue = 0;
-    this.maxRIF = 0;
+    this.maxRating = 0;
     this.hoursInGame = 0;
     this.leaveGameAmount = 0;
     this.complainAmount = 0;

@@ -5,7 +5,7 @@ import { Game } from "../../entity/game/Game";
 import { GameState } from "../../entity/game/GameState";
 import { PlayerRepository } from "../../repository/player-repository";
 
-const handlePlayerDisconnect = async (game: Game, player: Player): Promise<Player> => {
+const handlePlayerRemove = async (game: Game, player: Player): Promise<Player> => {
   const playerRepository = getCustomRepository(PlayerRepository);
 
   if(!player.isConnected || game.state !== GameState.PLAY) {
@@ -18,4 +18,4 @@ const handlePlayerDisconnect = async (game: Game, player: Player): Promise<Playe
   }
 };
 
-export default handlePlayerDisconnect;
+export default handlePlayerRemove;

@@ -1,12 +1,15 @@
 import GameService from '../service/game-service';
+import GameListService from '../service/game-list-service';
+import ScenarioService from '../service/scenario-service';
+
 import GameValidator from './validator/game-validator';
-import {extractUserFromRequest} from "./common";
+import { extractUserFromRequest } from './common';
 
 const getScenarios = {
   method: 'GET',
   path: '/scenarios',
   async handler() {
-    return GameService.getScenarios();
+    return ScenarioService.getScenarios();
   }
 };
 
@@ -14,7 +17,7 @@ const addScenario = {
   method: 'POST',
   path: '/scenarios',
   async handler(request) {
-    return GameService.addScenario(extractUserFromRequest(request), request.payload);
+    return ScenarioService.addScenario(extractUserFromRequest(request), request.payload);
   },
   options: {
     validate: {
@@ -27,7 +30,7 @@ const addGame = {
   method: 'POST',
   path: '/games',
   async handler(request, h) {
-    await GameService.addGame(request.payload);
+    await GameListService.addGame(extractUserFromRequest(request), request.payload);
     return h.response();
   },
   options: {
@@ -55,7 +58,7 @@ const getGames = {
   method: 'GET',
   path: '/games',
   async handler() {
-    return GameService.getGames();
+    return GameListService.getGames();
   },
 };
 
@@ -64,6 +67,20 @@ const connectToGame = {
   path: '/games/{gameId}',
   async handler(request) {
     return GameService.connectToGame(extractUserFromRequest(request), { ...request.payload, ...request.params }, request);
+  },
+  options: {
+    validate: {
+      //payload: GameValidator.addGame,
+    },
+  },
+};
+
+const setCompanyName = {
+  method: 'POST',
+  path: '/games/{gameId}/company',
+  async handler(request, h) {
+   await GameService.setCompanyName(extractUserFromRequest(request), { ...request.payload, ...request.params });
+   return h.response();
   },
   options: {
     validate: {
@@ -128,14 +145,44 @@ const setPlayerSolutions = {
   },
 };
 
+const restartGame = {
+  method: 'POST',
+  path: '/games/{gameId}/restart',
+  async handler(request) {
+    return GameListService.restartGame(extractUserFromRequest(request), { ...request.params });
+  },
+  options: {
+    validate: {
+      //payload: GameValidator.addGame,
+    },
+  },
+};
+
+const rejectRestartGame = {
+  method: 'DELETE',
+  path: '/games/{gameId}/restart',
+  async handler(request, h) {
+    await GameListService.rejectRestartGame(extractUserFromRequest(request), { ...request.params });
+    return h.response();
+  },
+  options: {
+    validate: {
+      //payload: GameValidator.addGame,
+    },
+  },
+};
+
 export default [
   getScenarios,
   addScenario,
   addGame,
   getGames,
   connectToGame,
+  setCompanyName,
   disconnectFromGame,
   sendChatMessageToGeneral,
   sendChatMessageToGame,
   setPlayerSolutions,
+  restartGame,
+  rejectRestartGame,
 ];

@@ -4,6 +4,7 @@ import {Socket} from "@hapi/nes";
 
 import GameService from './game-service';
 import UserService from './user-service';
+import { onUserConnected, onUserDisconnected } from './game-list-service';
 
 let socket: Hapi.Server = null;
 
@@ -22,12 +23,10 @@ export async function registerWebsocketServer(server: Hapi.Server) {
         endpoint: '/api/nes/auth',
       },
       async onConnection(socket: Socket) {
-        await UserService.setUserOnline(await UserService.getUserByUserName(socket.auth.credentials.user), true);
-        server.logger().info(`User ${socket.auth.credentials.user} connected via websocket`);
+        await onUserConnected(await UserService.getUserByUserName(socket.auth.credentials.user));
       },
       async onDisconnection(socket: Socket) {
-        await UserService.setUserOnline(await UserService.getUserByUserName(socket.auth.credentials.user), false);
-        server.logger().info(`User ${socket.auth.credentials.user} disconnected via websocket`);
+        await onUserDisconnected(await UserService.getUserByUserName(socket.auth.credentials.user));
       },
     }
   });

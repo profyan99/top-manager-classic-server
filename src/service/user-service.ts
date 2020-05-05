@@ -1,22 +1,17 @@
 import * as Boom from '@hapi/boom';
 import * as bcrypt from 'bcrypt';
-import * as JWT from "jsonwebtoken";
-import { EntityManager, getCustomRepository, getManager, getRepository } from "typeorm";
+import * as JWT from 'jsonwebtoken';
+import { EntityManager, getCustomRepository, getManager, getRepository } from 'typeorm';
 
-import {User} from "../entity/user/User";
-import {UserRole} from "../entity/user/UserRole";
-import {UserRepository} from "../repository/user-repository";
-import {UserGameStats} from "../entity/user/UserGameStats";
-import { ERRORS } from "../utils/errors";
+import { User } from '../entity/user/User';
+import { UserRole } from '../entity/user/UserRole';
+import { UserRepository } from '../repository/user-repository';
+import { UserGameStats } from '../entity/user/UserGameStats';
+import { ERRORS } from '../utils/errors';
+import mapUser from '../mapper/user-mapper';
 
 const getCurrentUser = (user: User) => {
-  return {
-    id: user.id,
-    userName: user.userName,
-    avatar: user.avatar,
-    roles: user.roles,
-    gameStats: user.gameStats,
-  };
+  return mapUser(user);
 };
 
 const isAdmin = (user: User) => {
@@ -24,34 +19,34 @@ const isAdmin = (user: User) => {
 };
 
 const getUserById = (id: number): Promise<User> => {
-  return getRepository(User).findOne({where: {id}});
+  return getRepository(User).findOne({ where: { id } });
 };
 
 const getUserByUserName = (userName: string): Promise<User> => {
-  return getRepository(User).findOne({where: {userName}});
+  return getRepository(User).findOne({ where: { userName } });
 };
 
 const getUserByRefreshToken = (refreshToken: string): Promise<User> => {
-  return getRepository(User).findOne({where: {refreshToken}});
+  return getRepository(User).findOne({ where: { refreshToken } });
 };
 
 const generateJWT = (user: User) => {
-  return JWT.sign({id: user.id}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_EXPIRATION_TIME});
+  return JWT.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION_TIME });
 };
 
 const generateRefreshToken = () => {
   return JWT.sign({}, process.env.JWT_REFRESH_TOKEN_SECRET);
 };
 
-const addUser = async (request, {userName, email, password, avatar}) => {
+const addUser = async (request, { userName, email, password, avatar }) => {
   return await getManager().transaction(async em => {
     const userRepository: UserRepository = em.getCustomRepository(UserRepository);
 
-    if (await userRepository.findOne({where: {userName}})) {
+    if (await userRepository.findOne({ where: { userName } })) {
       throw Boom.badRequest(ERRORS.USER.EXISTED.NAME);
     }
 
-    if (await userRepository.findOne({where: {email}})) {
+    if (await userRepository.findOne({ where: { email } })) {
       throw Boom.badRequest(ERRORS.USER.EXISTED.EMAIL);
     }
 
@@ -73,7 +68,7 @@ const addUser = async (request, {userName, email, password, avatar}) => {
   });
 };
 
-const loginUserThrowSocial = async (request, data: { userName; email; password; avatar }) => {
+const loginUserThrowSocial = async (request, data: {userName; email; password; avatar}) => {
   const userRepository: UserRepository = getCustomRepository(UserRepository);
 
   let user: User = await getUserByUserName(data.userName);
@@ -90,10 +85,10 @@ const loginUserThrowSocial = async (request, data: { userName; email; password; 
   };
 };
 
-const loginUser = async ({userName, password}) => {
+const loginUser = async ({ userName, password }) => {
   const userRepository: UserRepository = getCustomRepository(UserRepository);
 
-  const user: User = await userRepository.findOne({where: {userName}})
+  const user: User = await userRepository.findOne({ where: { userName } })
     .catch(() => {
       throw Boom.badRequest(ERRORS.USER.INVALID_PASSWORD);
     });
@@ -127,13 +122,22 @@ export const addPlayerLeaveGame = async (user: User, em?: EntityManager) => {
   await userRepository.save(fullUser);
 };
 
-const setUserOnline = async (user: User, isConnected: boolean, em? : EntityManager) => {
+export const setUserOnline = async (user: User, isConnected: boolean, em?: EntityManager) => {
   const userRepository = em ? em.getRepository(User) : getRepository(User);
-  if(!user) {
+  if (!user) {
     return;
   }
   user.isConnected = isConnected;
   await userRepository.save(user);
+};
+
+export const getOnlineUsers = async () => {
+  const users = await getRepository(User).find({
+    where: {
+      isConnected: true
+    }
+  });
+  return users.map(mapUser);
 };
 
 export default {
@@ -148,4 +152,5 @@ export default {
   isAdmin,
   addPlayerLeaveGame,
   setUserOnline,
-}
+  getOnlineUsers,
+};

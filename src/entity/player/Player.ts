@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { PlayerState } from "./PlayerState";
 import { User } from "../user/User";
-import { Game } from "../game/Game";
+import { Game, GameProps } from '../game/Game';
 import { Company } from "./Company";
 
 @Entity()
@@ -28,7 +28,7 @@ export class Player {
   @Column({ default: 0, type: 'bigint' })
   timeToEndReload: number;
 
-  @Column({ default: true })
+  @Column({ default: false })
   isConnected: boolean;
 
   @Column({ default: false })
@@ -43,6 +43,12 @@ export class Player {
 
   @OneToMany(type => Company, company => company.player)
   companyPeriods: Company[];
+
+  public constructor(props?) {
+    if(props) {
+      Object.assign(this, props);
+    }
+  }
 
   public getCompanyByPeriod(period: number) {
     return this.companyPeriods.find((company) => company.period === period);
