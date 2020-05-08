@@ -54,10 +54,11 @@ export async function registerWebsocketServer(server: Hapi.Server) {
       }
       return Promise.reject();
     },
-    async onUnsubscribe(socket: Socket, path) {
+    async onUnsubscribe(socket: Socket, path, params) {
       server.logger().info(`User ${socket.auth.credentials.user} unsubscribed from [${path}] via websocket`);
       await GameService.disconnectFromGameViaWebsocket({
         userName: socket.auth.credentials.user,
+        ...params,
       });
     },
   });

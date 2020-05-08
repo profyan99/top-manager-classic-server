@@ -97,7 +97,7 @@ export const broadcastEndGamePeriodEvent = (game: Game, period: number) => {
 
 export const broadcastGamesMetaDataUpdateEvent = (payload: object) => {
   WebsocketService.publish(process.env.GAME_LIST_ROUTE, {
-    objectType: 'PLAYERS_ONLINE',
+    objectType: 'GAME_PREVIEW_META',
     eventType: 'UPDATE',
     body: payload,
   });
@@ -107,8 +107,8 @@ export const broadcastRestartGameEvent = (game: Game, payload: object) => {
   broadcastGameEvent(game, 'RESTART', payload);
 };
 
-export const broadcastRejectRestartGameEvent = (game: Game, payload: object) => {
-  broadcastGameEvent(game, 'RESTART_REJECT', payload);
+export const broadcastRejectRestartGameEvent = (game: Game, player: Player) => {
+  broadcastPlayerEvent(game, player,'RESTART_REJECT', game.currentPeriod);
 };
 
 export default {

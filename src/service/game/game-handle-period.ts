@@ -1,11 +1,9 @@
 import { getManager } from "typeorm";
 
 import { Game } from "../../entity/game/Game";
-import { GameState } from "../../entity/game/GameState";
 import { PlayerState } from "../../entity/player/PlayerState";
 import addNewCompany from "../player/player-add-new-company";
 import {
-  broadcastEndGamePeriodEvent,
   broadcastNewGamePeriodEvent,
   sendPlayerUpdate
 } from "../game-message-sender-service";
@@ -31,10 +29,11 @@ const handleNewPeriod = async (game: Game, currentTime: number) => {
     if (game.currentPeriod >= game.maxPeriods || game.getBankruptCount() >= game.players.length) {
       await endGame(game, em);
     } else {
+      const actualPlayers = game.getActualPlayers();
       game.currentPeriod = Math.min(game.currentPeriod + 1, game.maxPeriods);
       game.isSendSolutionsAllowed = true;
 
-      for (const player of game.players) {
+      for (const player of actualPlayers) {
         player.state = PlayerState.THINK;
         const newCompany: Company = await addNewCompany(game, player, em);
         player.companyPeriods.push(newCompany);
@@ -42,7 +41,7 @@ const handleNewPeriod = async (game: Game, currentTime: number) => {
       }
       game.startCountDownTime = Date.now();
       broadcastNewGamePeriodEvent(game, game.currentPeriod);
-      game.players.forEach((player) => sendPlayerUpdate(game, player, game.currentPeriod - 1));
+      actualPlayers.forEach((player) => sendPlayerUpdate(game, player, game.currentPeriod - 1));
       server.logger().info(`Game ${game.name}[${game.id}]: new period [${game.currentPeriod}]`);
     }
     return gameRepository.save(game);

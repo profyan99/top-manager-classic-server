@@ -135,7 +135,8 @@ const setPlayerSolutions = {
   method: 'POST',
   path: '/games/{gameId}/solutions',
   async handler(request, h) {
-    await GameService.setPlayerSolutions(extractUserFromRequest(request), { ...request.payload }, request);
+    await GameService
+      .setPlayerSolutions(extractUserFromRequest(request), { ...request.payload, ...request.params }, request);
     return h.response();
   },
   options: {

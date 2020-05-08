@@ -8,14 +8,17 @@ import { PlayerRepository } from "../../repository/player-repository";
 const handlePlayerRemove = async (game: Game, player: Player): Promise<Player> => {
   const playerRepository = getCustomRepository(PlayerRepository);
 
-  if(!player.isConnected || game.state !== GameState.PLAY) {
-    game.players.splice(game.players.indexOf(player), 1);
-    return playerRepository.remove(player);
+  if(!player.isConnected) {
+    if(game.state === GameState.PREPARE) {
+      game.players.splice(game.players.indexOf(player), 1);
+      return playerRepository.remove(player);
+    }
+    player.isRemoved = true;
   } else {
-    player.isConnected = false;
     player.timeToEndReload = Date.now() + game.periodDuration;
-    return playerRepository.save(player);
   }
+  player.isConnected = false;
+  return playerRepository.save(player);
 };
 
 export default handlePlayerRemove;

@@ -18,6 +18,7 @@ import MessageSender from './game-message-sender-service';
 import { server } from '../index';
 import { ERRORS } from '../utils/errors';
 import PlayerMapper from '../mapper/player-mapper';
+import mapUser from '../mapper/user-mapper';
 
 const connectToGame = async (user: User, { gameId, password }, request) => {
   return await getManager().transaction(async em => {
@@ -29,7 +30,7 @@ const connectToGame = async (user: User, { gameId, password }, request) => {
       throw Boom.badRequest(ERRORS.GAME.INVALID);
     }
 
-    let player: Player = await playerRepository.findOneFullByUserName(user.userName);
+    let player: Player = await playerRepository.findOneFullByUserNameAndGame(user.userName, gameId);
     if (player && player.companyName) {
       if (!game.players.some((playerInGame) => playerInGame.userName === player.userName)) {
         throw Boom.badRequest(ERRORS.GAME.ALREADY_PLAYING);
@@ -80,12 +81,12 @@ const setCompanyName = async (user: User, { gameId, companyName }) => {
     throw Boom.badRequest(ERRORS.GAME.INVALID);
   }
 
-  const player: Player = await playerRepository.findOneFullByUserName(user.userName);
+  const player: Player = await playerRepository.findOneFullByUserNameAndGame(user.userName, gameId);
   if(!player) {
     throw Boom.badRequest(ERRORS.GAME.INVALID_GAME_PLAYER_ASSOCIATION);
   }
 
-  if (player.companyName) {
+  if (player.companyName.length) {
     throw Boom.badRequest(ERRORS.GAME.COMPANY_NAME_ALREADY_SET);
   }
 
@@ -96,6 +97,7 @@ const setCompanyName = async (user: User, { gameId, companyName }) => {
   player.companyName = companyName;
   player.isConnected = true;
   await playerRepository.save(player);
+
   MessageSender.broadcastUpdateGameEvent(game);
   MessageSender.broadcastPlayerConnected(game, player, game.currentPeriod);
   MessageSender.sendPlayerUpdate(game, player, 0);
@@ -111,7 +113,8 @@ const connectToGameViaWebsocket = async ({ gameId, userName }): Promise<boolean>
 const disconnectFromGame = async (user: User, { gameId }): Promise<void> => {
   await getManager().transaction(async em => {
     const playerRepository = em.getCustomRepository(PlayerRepository);
-    const player = await playerRepository.findOneFullByUserName(user.userName);
+
+    const player = await playerRepository.findOneWithoutPeriods(user.userName, gameId);
     if (!player || player.game.id != gameId) {
       throw Boom.badRequest(ERRORS.GAME.INVALID_GAME_PLAYER_ASSOCIATION);
     }
@@ -124,17 +127,19 @@ const disconnectFromGame = async (user: User, { gameId }): Promise<void> => {
   });
 };
 
-const disconnectFromGameViaWebsocket = async ({ userName }) => {
-  const player = await getCustomRepository(PlayerRepository).findOneFullByUserName(userName);
+const disconnectFromGameViaWebsocket = async ({ userName, gameId }) => {
+  const player = await getCustomRepository(PlayerRepository).findOneFullByUserNameAndGame(userName, gameId);
   if (!player) {
     return;
   }
+
   const game: Game = await getCustomRepository(GameRepository).findOneWithoutPeriods(player.game.id);
   if (!game) {
     return;
   }
 
   await PlayerHandler.removePlayer(game, player);
+
   MessageSender.broadcastPlayerDisconnected(game, player, game.currentPeriod);
   MessageSender.broadcastUpdateGameEvent(game);
   server.logger().info(`Player ${player.userName}: disconnected from ${game.name}[${game.id}] reload: ${player.timeToEndReload}`);
@@ -144,18 +149,15 @@ const sendChatMessage = async (user: User, { message, gameId }) => {
   const chatMessage = {
     message,
     time: Date.now(),
-    player: {
-      id: user.id,
-      userName: user.userName,
-      avatar: user.avatar,
-    },
+    player: mapUser(user),
   };
 
   if (gameId) {
-    const game = await getRepository(Game).findOne(gameId);
+    const game = await getCustomRepository(GameRepository).findOneWithoutPeriods(gameId);
     if (!game) {
       throw Boom.badRequest(ERRORS.GAME.INVALID);
     }
+
     MessageSender.broadcastMessageToGameChat(game, chatMessage);
   } else {
     MessageSender.broadcastMessageToGeneralChat(chatMessage);
@@ -166,7 +168,7 @@ const setPlayerSolutions = async (user: User, solutions, request) => {
   const playerRepository = getCustomRepository(PlayerRepository);
   const gameRepository = getCustomRepository(GameRepository);
 
-  const player: Player = await playerRepository.findOneFullByUserName(user.userName);
+  const player: Player = await playerRepository.findOneFullByUserNameAndGame(user.userName, solutions.gameId);
   if (!player) {
     throw Boom.badRequest(ERRORS.GAME.NOT_PLAYING);
   }
@@ -185,7 +187,7 @@ const setPlayerSolutions = async (user: User, solutions, request) => {
 };
 
 const isGameNeedToBeRemoved = (game: Game, currentTime: number): boolean =>
-  game.players.length === 0
+  game.getExistedPlayers().length === 0
   && (game.state !== GameState.PREPARE || (currentTime - game.startCountDownTime) / 1000 >= game.periodDuration);
 
 export const updateGames = async () => {

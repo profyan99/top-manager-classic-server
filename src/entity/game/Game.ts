@@ -66,8 +66,24 @@ export class Game {
     Object.assign(this, props);
   }
 
-  public getBankruptCount() {
+  public getBankruptCount(): number {
     return this.players.filter((player) => player.isBankrupt).length;
+  }
+
+  public getActualPlayers(): Player[] {
+    return this.players.filter((player) => !player.isRemoved && !player.isBankrupt);
+  }
+
+  public getConnectedPlayers(): Player[] {
+    return this.players.filter((player) => player.isConnected);
+  }
+
+  public getExistedPlayers(): Player[] {
+    return this.players.filter((player) => !player.isRemoved);
+  }
+
+  public isAllSendSolutions(): boolean {
+    return this.playersSolutionsAmount + this.getBankruptCount() >= this.players.length;
   }
 }
 

@@ -6,7 +6,6 @@ import MessageSender, { broadcastGamesMetaDataUpdateEvent } from './game-message
 import { GameRepository } from '../repository/game-repository';
 import UserService from './user-service';
 import GameMapper from '../mapper/game-mapper';
-import { mapUser } from '../mapper/user-mapper';
 import { server } from '../index';
 
 import { Scenario } from '../entity/game/Scenario';
@@ -59,14 +58,14 @@ export const getGames = async () => {
 export const onUserConnected = async (user: User) => {
   await UserService.setUserOnline(user, true);
   onlineUsers.push(user);
-  broadcastGamesMetaDataUpdateEvent({ usersOnline: onlineUsers.length });
+  broadcastGamesMetaDataUpdateEvent({ playersAmount: onlineUsers.length });
   server.logger().info(`User ${user.userName} connected via websocket`);
 };
 
 export const onUserDisconnected = async (user: User) => {
   await UserService.setUserOnline(user, false);
   onlineUsers = onlineUsers.filter((onlineUser) => onlineUser.id !== user.id);
-  broadcastGamesMetaDataUpdateEvent({ usersOnline: onlineUsers.length });
+  broadcastGamesMetaDataUpdateEvent({ playersAmount: onlineUsers.length });
   server.logger().info(`User ${user.userName} disconnected via websocket`);
 };
 
@@ -100,13 +99,13 @@ export const restartGame = async (user: User, { gameId }) => {
     newGame.players = await Promise.all(playersAddQueries);
     await gameRepository.save(newGame);
 
-    const payload = {
-      fromUser: mapUser(user),
-      newGameId: newGame.id,
+    const newGamePayload = {
+      id: newGame.id,
     };
 
-    MessageSender.broadcastRestartGameEvent(game, payload);
+    MessageSender.broadcastRestartGameEvent(game, newGamePayload);
     MessageSender.broadcastAddGameEvent(newGame);
+    server.logger().info(`User ${user.userName} attempt to restart ${game.name}[${game.id}] with new id - ${newGame.id}`);
     return newGame.id;
   });
 };
@@ -119,18 +118,16 @@ export const rejectRestartGame = async (user: User, { gameId }) => {
     throw Boom.badRequest(ERRORS.GAME.INVALID);
   }
 
-  const player: Player = await getCustomRepository(PlayerRepository).findOne(user.userName);
-  if(!player) {
-    throw Boom.badRequest(ERRORS.GAME.INVALID_GAME_PLAYER_ASSOCIATION);
-  }
-
+  const player: Player = await getCustomRepository(PlayerRepository)
+    .findOneFullByUserNameAndGame(user.userName, gameId);
   if(!player || player.game.id !== game.id) {
     throw Boom.badRequest(ERRORS.GAME.INVALID_GAME_PLAYER_ASSOCIATION);
   }
 
   await handlePlayerRemove(game, player);
-  MessageSender.broadcastRejectRestartGameEvent(game, mapUser(user));
+  MessageSender.broadcastRejectRestartGameEvent(game, player);
   MessageSender.broadcastUpdateGameEvent(game);
+  server.logger().info(`User ${user.userName} rejects restart ${game.name}[${game.id}]`);
 };
 
 export default {

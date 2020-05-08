@@ -34,8 +34,7 @@ export class Player {
   @Column({ default: false })
   isRemoved: boolean;
 
-  @OneToOne(type => User)
-  @JoinColumn()
+  @ManyToOne(type => User)
   user: User;
 
   @ManyToOne(type => Game, game => game.players)

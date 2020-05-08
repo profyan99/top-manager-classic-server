@@ -11,17 +11,20 @@ const endGame = async (game: Game, em: EntityManager) => {
   game.state = GameState.END;
   game.currentPeriod = game.maxPeriods;
 
-  const winner = game.players.reduce((winner, currentPlayer) =>
-    winner.getCompanyByPeriod(game.currentPeriod).rating
-    > currentPlayer.getCompanyByPeriod(game.currentPeriod).rating
-      ? winner
-      : currentPlayer);
+  const actualPlayers = game.getActualPlayers();
 
-  const userUpdates = game.players.map(async (player) => {
+  const winner = actualPlayers
+    .reduce((winner, currentPlayer) =>
+      winner.getCompanyByPeriod(game.currentPeriod).rating
+      > currentPlayer.getCompanyByPeriod(game.currentPeriod).rating
+        ? winner
+        : currentPlayer);
+
+  const userUpdates = actualPlayers.map(async (player) => {
     const currentUser = await userRepository.findOne(player.user.id);
     currentUser.gameStats.gamesAmount += 1;
 
-    if(game.tournament) {
+    if (game.tournament) {
       currentUser.gameStats.tournamentAmount += 1;
     }
 
@@ -35,7 +38,7 @@ const endGame = async (game: Game, em: EntityManager) => {
       player.getCompanyByPeriod(game.currentPeriod).rating
     );
 
-    if(player.id === winner.id) {
+    if (player.id === winner.id) {
       currentUser.gameStats.winAmount += 1;
     } else {
       currentUser.gameStats.loseAmount += 1;
@@ -46,7 +49,7 @@ const endGame = async (game: Game, em: EntityManager) => {
   await Promise.all(userUpdates);
 
   broadcastEndGamePeriodEvent(game, game.currentPeriod + 1);
-  game.players.forEach((player) => sendPlayerUpdate(game, player, game.currentPeriod));
+  actualPlayers.forEach((player) => sendPlayerUpdate(game, player, game.currentPeriod));
 
   server.logger().info(`Game ${game.name}[${game.id}]: was ended.
    ${winner.companyName} with ${winner.getCompanyByPeriod(game.currentPeriod).rating} rating win!`);

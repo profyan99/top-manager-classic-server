@@ -7,12 +7,12 @@ import { Game } from '../../entity/game/Game';
 
 const removeInactivePlayers = async (game: Game, currentTime: number, em: EntityManager) => {
   const playerRepository = em.getCustomRepository(PlayerRepository);
-  const removedPlayers = game.players
+  const removedPlayers = game.getActualPlayers()
     .filter((player) => !player.isConnected && player.timeToEndReload && player.timeToEndReload < currentTime)
     .map((player) => {
-      game.players = game.players.filter((gamePlayer) => gamePlayer.id !== player.id);
+      player.isRemoved = true;
       return[
-        playerRepository.remove(player),
+        playerRepository.save(player),
         addPlayerLeaveGame(player.user, em)
       ];
     });

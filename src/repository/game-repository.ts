@@ -11,8 +11,10 @@ export class GameRepository extends Repository<Game> {
         isRemoved: false,
       },
       relations: [
+        'owner',
         'players',
         'players.companyPeriods',
+        'players.user',
         'scenario',
       ],
     });
@@ -24,7 +26,9 @@ export class GameRepository extends Repository<Game> {
         isRemoved: false,
       },
       relations: [
+        'owner',
         'players',
+        'players.user',
       ],
     });
   }
@@ -36,8 +40,10 @@ export class GameRepository extends Repository<Game> {
         id: gameId,
       },
       relations: [
+        'owner',
         'players',
         'players.companyPeriods',
+        'players.user',
         'scenario',
       ],
     });
@@ -50,8 +56,10 @@ export class GameRepository extends Repository<Game> {
         id: gameId,
       },
       relations: [
+        'owner',
         'players',
         'players.companyPeriods',
+        'players.user',
         'scenario',
         'periods',
       ],

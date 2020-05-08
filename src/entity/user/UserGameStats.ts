@@ -19,7 +19,7 @@ export class UserGameStats {
   @Column()
   maxRating: number;
 
-  @Column()
+  @Column({ default: 0, type: 'real' })
   hoursInGame: number;
 
   @Column()

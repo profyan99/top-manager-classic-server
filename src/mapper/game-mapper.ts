@@ -1,6 +1,7 @@
 import {Game} from '../entity/game/Game';
 import ScenarioMapper from './scenario-mapper';
 import PlayerMapper from './player-mapper';
+import mapUser from './user-mapper';
 
 const mapPreview = (game: Game) => ({
   id: game.id,
@@ -14,6 +15,7 @@ const mapPreview = (game: Game) => ({
   state: game.state,
   currentPeriod: game.currentPeriod,
   periodDuration: game.periodDuration,
+  owner: mapUser(game.owner),
   players: (game.players && game.players.map((player) => player.userName)) || [],
 });
 

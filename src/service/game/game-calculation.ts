@@ -43,7 +43,7 @@ const calculateGame = async (game: Game, em: EntityManager) => {
 
   server.logger().info(`Game ${game.name}[${game.id}]: calculating ${game.currentPeriod} period`);
 
-  const companies = game.players.filter((player) => !player.isBankrupt);
+  const companies = game.getActualPlayers();
 
   period.period = game.currentPeriod;
   period.summaryMarketing = previousPeriod.summaryMarketing;
