@@ -11,8 +11,8 @@ import { GameRepository } from "../../repository/game-repository";
 import calculateGame from "./game-calculation";
 import removeInactivePlayers from "./game-remove-players";
 import { Company } from "../../entity/player/Company";
-import { server } from "../../index";
 import endGame from './game-end';
+import logger from '../../logging';
 
 const handleNewPeriod = async (game: Game, currentTime: number) => {
   return await getManager().transaction(async em => {
@@ -42,7 +42,7 @@ const handleNewPeriod = async (game: Game, currentTime: number) => {
       game.startCountDownTime = Date.now();
       broadcastNewGamePeriodEvent(game, game.currentPeriod);
       actualPlayers.forEach((player) => sendPlayerUpdate(game, player, game.currentPeriod - 1));
-      server.logger().info(`Game ${game.name}[${game.id}]: new period [${game.currentPeriod}]`);
+      logger.info(`Game ${game.name}[${game.id}]: new period [${game.currentPeriod}]`);
     }
     return gameRepository.save(game);
   });

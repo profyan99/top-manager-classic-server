@@ -17,6 +17,7 @@ import * as PlayerHandler from './player';
 import handlePlayerRemove from './player/player-remove';
 import { Player } from '../entity/player/Player';
 import { PlayerRepository } from '../repository/player-repository';
+import logger from '../logging';
 
 let onlineUsers = [];
 
@@ -33,6 +34,8 @@ export const addGame = async (user: User, payload) => {
 
   const newGame: Game = await GameHandler.addGame(payload);
   MessageSender.broadcastAddGameEvent(newGame);
+  logger.info(`Added new game ${newGame.name}[${newGame.id}] by ${user.userName}`);
+  return GameMapper.mapPreview(newGame);
 };
 
 export const deleteGame = async (user: User, { gameId }) => {
@@ -48,25 +51,34 @@ export const deleteGame = async (user: User, { gameId }) => {
 
   await GameHandler.removeGame(game);
   MessageSender.broadcastRemoveGameEvent(game);
+  logger.info(`Deleted game ${game.name}[${game.id}] by ${user.userName}`);
+};
+
+export const getGamesMetaData = () => {
+  return { playersAmount: onlineUsers.length };
 };
 
 export const getGames = async () => {
-  return (await getCustomRepository(GameRepository).findWithoutPeriods())
+  const games = (await getCustomRepository(GameRepository).findWithoutPeriods())
     .map((game) => GameMapper.mapPreview(game));
+  return {
+    games,
+    meta: getGamesMetaData(),
+  }
 };
 
 export const onUserConnected = async (user: User) => {
   await UserService.setUserOnline(user, true);
   onlineUsers.push(user);
   broadcastGamesMetaDataUpdateEvent({ playersAmount: onlineUsers.length });
-  server.logger().info(`User ${user.userName} connected via websocket`);
+  logger.info(`User ${user.userName} connected via websocket`);
 };
 
 export const onUserDisconnected = async (user: User) => {
   await UserService.setUserOnline(user, false);
   onlineUsers = onlineUsers.filter((onlineUser) => onlineUser.id !== user.id);
   broadcastGamesMetaDataUpdateEvent({ playersAmount: onlineUsers.length });
-  server.logger().info(`User ${user.userName} disconnected via websocket`);
+  logger.info(`User ${user.userName} disconnected via websocket`);
 };
 
 export const restartGame = async (user: User, { gameId }) => {
@@ -105,7 +117,7 @@ export const restartGame = async (user: User, { gameId }) => {
 
     MessageSender.broadcastRestartGameEvent(game, newGamePayload);
     MessageSender.broadcastAddGameEvent(newGame);
-    server.logger().info(`User ${user.userName} attempt to restart ${game.name}[${game.id}] with new id - ${newGame.id}`);
+    logger.info(`User ${user.userName} attempt to restart ${game.name}[${game.id}] with new id - ${newGame.id}`);
     return newGame.id;
   });
 };
@@ -127,7 +139,7 @@ export const rejectRestartGame = async (user: User, { gameId }) => {
   await handlePlayerRemove(game, player);
   MessageSender.broadcastRejectRestartGameEvent(game, player);
   MessageSender.broadcastUpdateGameEvent(game);
-  server.logger().info(`User ${user.userName} rejects restart ${game.name}[${game.id}]`);
+  logger.info(`User ${user.userName} rejects restart ${game.name}[${game.id}]`);
 };
 
 export default {
@@ -136,6 +148,7 @@ export default {
   getGames,
   onUserConnected,
   onUserDisconnected,
+  getGamesMetaData,
   restartGame,
   rejectRestartGame,
 };

@@ -5,6 +5,7 @@ import {Socket} from "@hapi/nes";
 import GameService from './game-service';
 import UserService from './user-service';
 import { onUserConnected, onUserDisconnected } from './game-list-service';
+import logger from '../logging';
 
 let socket: Hapi.Server = null;
 
@@ -50,12 +51,13 @@ export async function registerWebsocketServer(server: Hapi.Server) {
         userName: socket.auth.credentials.user,
       });
       if (result) {
+        logger.info(`User ${socket.auth.credentials.user} connected to game [${path}] via websocket`);
         return Promise.resolve();
       }
       return Promise.reject();
     },
     async onUnsubscribe(socket: Socket, path, params) {
-      server.logger().info(`User ${socket.auth.credentials.user} unsubscribed from [${path}] via websocket`);
+      logger.info(`User ${socket.auth.credentials.user} disconnected from game [${path}] via websocket`);
       await GameService.disconnectFromGameViaWebsocket({
         userName: socket.auth.credentials.user,
         ...params,

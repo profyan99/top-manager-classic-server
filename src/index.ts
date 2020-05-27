@@ -1,45 +1,71 @@
 import * as Hapi from '@hapi/hapi';
-import "reflect-metadata";
-import {createConnection} from "typeorm";
-import {config} from 'dotenv';
+import 'reflect-metadata';
+import { createConnection } from 'typeorm';
+import { config } from 'dotenv';
 
 import routes from './route';
 import Authentication from './auth';
-import {registerWebsocketServer} from "./service/websocket-service";
+import { registerWebsocketServer } from './service/websocket-service';
 import startGameScheduler from './service/game-scheduler';
-import Logging from './logging';
+import logger from './logging';
+import { disconnectAllUsers } from './service/user-service';
 
 config();
 
 export const server = new Hapi.Server({
-  debug: {request: ['error']},
+  debug: { request: ['error'] },
   host: '127.0.0.1',
   port: process.env.PORT,
   routes: {
     cors: {
-      origin: ["*"],
+      origin: ['*'],
       credentials: true,
     },
   },
 });
 
-process.on("uncaughtException", (error: Error) => {
-  console.error(`uncaughtException ${error.message}`);
+server.ext('onPreResponse', (request, h) => {
+  if(request.response['isBoom']) {
+    logger.warn(`Request error: ${request.response}`);
+  }
+  return h.continue;
 });
 
-process.on("unhandledRejection", (reason: any) => {
-  console.error(`unhandledRejection ${reason}`);
+server.events.on('log', (event, tags) => {
+  if (tags.error) {
+    logger.error(`Server error: ${event.error ? event.error['message'] : event.data}`);
+  } else {
+    logger.info(`Server log: ${event.data}`);
+  }
 });
 
-server.register(Logging)
-  .then(() => Authentication.register(server))
-  .then(() => server.register(routes, {routes: {prefix: '/api'}}))
+process.on('SIGINT', async function () {
+  logger.info('Stopping server...');
+
+  await disconnectAllUsers();
+  server.stop({ timeout: 10000 })
+    .then(() => {
+      logger.info('Server stopped');
+      process.exit(0);
+    });
+});
+
+process.on('uncaughtException', (error: Error) => {
+  logger.error(`uncaughtException ${error.message}`);
+});
+
+process.on('unhandledRejection', (reason: any) => {
+  logger.error(`unhandledRejection ${reason}`);
+});
+
+Authentication.register(server)
+  .then(() => server.register(routes, { routes: { prefix: '/api' } }))
   .then(() => registerWebsocketServer(server))
   .then(() => server.start())
   .then(() => createConnection())
   .then(() => startGameScheduler())
-  .then(() => console.log('Started  at', process.env.PORT))
+  .then(() => logger.info(`Started at ${process.env.PORT}`))
   .catch((err) => {
-    console.error(err);
-    process.exit(1)
+    logger ? logger.error(err) : console.log(err);
+    process.exit(1);
   });

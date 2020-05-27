@@ -2,11 +2,11 @@ import { getRepository } from "typeorm";
 
 import { Game } from "../../entity/game/Game";
 import { broadcastRemoveGameEvent } from "../game-message-sender-service";
-import { server } from '../../index';
 import handlePlayerRemove from '../player/player-remove';
+import logger from '../../logging';
 
 const removeGame = async (game: Game) => {
-  server.logger().info(`Game [${game.name}](${game.id}): remove game [players: ${game.players.length}]`);
+  logger.info(`Game ${game.name}[${game.id}]: removed [players: ${game.players.length}]`);
 
   broadcastRemoveGameEvent(game);
 

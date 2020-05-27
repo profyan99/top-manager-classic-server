@@ -1,10 +1,10 @@
 import { Game } from '../../entity/game/Game';
 import { GameState } from '../../entity/game/GameState';
 import handleNewPeriod from './game-handle-period';
-import { server } from '../../index';
 import { getCustomRepository } from 'typeorm';
 import { GameRepository } from '../../repository/game-repository';
 import GameHandler from './index';
+import logger from '../../logging';
 
 const updateGame = async (gamePreview: Game, currentTime: number) => {
   const timeDiff = Math.round((currentTime - gamePreview.startCountDownTime) / 1000);
@@ -13,7 +13,7 @@ const updateGame = async (gamePreview: Game, currentTime: number) => {
     && gamePreview.players.length >= gamePreview.maxPlayers
     && gamePreview.players.every((player) => player.isConnected)) {
 
-    server.logger().info(`Game ${gamePreview.name}[${gamePreview.id}]: start`);
+    logger.info(`Game ${gamePreview.name}[${gamePreview.id}]: start`);
     const game: Game = await getCustomRepository(GameRepository).findOneFull(gamePreview.id);
     game.state = GameState.PLAY;
     return GameHandler.handleNewPeriod(game, currentTime);

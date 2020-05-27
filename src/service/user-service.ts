@@ -9,6 +9,7 @@ import { UserRepository } from '../repository/user-repository';
 import { UserGameStats } from '../entity/user/UserGameStats';
 import { ERRORS } from '../utils/errors';
 import mapUser from '../mapper/user-mapper';
+import logger from '../logging';
 
 const getCurrentUser = (user: User) => {
   return mapUser(user);
@@ -64,6 +65,7 @@ const addUser = async (request, { userName, email, password, avatar }) => {
       refreshToken: generateRefreshToken(),
     });
     await userRepository.save(user);
+    logger.info(`User ${user.userName} signed up`);
     return user;
   });
 };
@@ -78,6 +80,7 @@ const loginUserThrowSocial = async (request, data: {userName; email; password; a
 
   user.lastLogIn = new Date();
   await userRepository.save(user);
+  logger.info(`User ${user.userName} logged in throw social`);
 
   return {
     accessToken: generateJWT(user),
@@ -107,6 +110,7 @@ const loginUser = async ({ userName, password }) => {
 
   user.lastLogIn = new Date();
   await userRepository.save(user);
+  logger.info(`User ${user.userName} logged in`);
 
   return {
     accessToken: generateJWT(user),
@@ -120,6 +124,7 @@ export const addPlayerLeaveGame = async (user: User, em?: EntityManager) => {
   const fullUser = await userRepository.findOne(user.id);
   fullUser.gameStats.leaveGameAmount++;
   await userRepository.save(fullUser);
+  logger.info(`Add player leave game ${user.userName}`);
 };
 
 export const setUserOnline = async (user: User, isConnected: boolean, em?: EntityManager) => {
@@ -140,6 +145,11 @@ export const getOnlineUsers = async () => {
   return users.map(mapUser);
 };
 
+export const disconnectAllUsers = async () => {
+  logger.info('Disconnect all users');
+  return getCustomRepository(UserRepository).disconnectAll();
+};
+
 export default {
   addUser,
   getCurrentUser,
@@ -153,4 +163,5 @@ export default {
   addPlayerLeaveGame,
   setUserOnline,
   getOnlineUsers,
+  disconnectAllUsers,
 };

@@ -2,13 +2,14 @@ import { Company } from "../../entity/player/Company";
 import { Game } from "../../entity/game/Game";
 import { Scenario } from "../../entity/game/Scenario";
 import { Player } from '../../entity/player/Player';
+import logger from '../../logging';
 
 const calculatePlayer = (player: Player, game: Game): Company => {
   const companyOld: Company = player.getCompanyByPeriod(game.currentPeriod - 1);
   const companyNew: Company = player.getCompanyByPeriod(game.currentPeriod);
   const scenario: Scenario = game.scenario;
 
-  console.log(`calculateCompany of ${player.companyName}: `, companyOld, companyNew);
+  logger.info(`Calculate company of ${player.companyName}:`, companyOld, companyNew);
 
   companyNew.storageCost = companyOld.storage; // стоимость хранения = склад
   companyNew.fullPower = companyOld.futurePower;

@@ -6,6 +6,7 @@ import { PlayerState } from "../../entity/player/PlayerState";
 import { Game } from "../../entity/game/Game";
 import { Scenario } from "../../entity/game/Scenario";
 import { PlayerRepository } from "../../repository/player-repository";
+import logger from '../../logging';
 
 const setPlayerSolutions = async (game: Game, player: Player, solutions) => {
   return await getManager().transaction(async em => {
@@ -18,9 +19,9 @@ const setPlayerSolutions = async (game: Game, player: Player, solutions) => {
     let expenses: number = Math.round(solutions.investments + solutions.marketing + solutions.nir
       + oldCompany.productionCost * solutions.production);
 
-    console.log(`AvailableMoney of ${player.companyName}: `, scenario.loanLimit, scenario.extraLoanLimit, (oldCompany.bank - oldCompany.loan));
-    console.log(`Expenses of ${player.companyName}: `, solutions.investments, solutions.marketing, solutions.nir, (oldCompany.productionCost * oldCompany.production));
-    console.log(`setPlayerSolutions of ${player.companyName}: `, solutions, expenses, availableMoney);
+    logger.info(`[Solutions] AvailableMoney of ${player.companyName}: `, scenario.loanLimit, scenario.extraLoanLimit, (oldCompany.bank - oldCompany.loan));
+    logger.info(`[Solutions] Expenses of ${player.companyName}: `, solutions.investments, solutions.marketing, solutions.nir, (oldCompany.productionCost * oldCompany.production));
+    logger.info(`[Solutions] Summary expenses and available money of ${player.companyName}: `, solutions, expenses, availableMoney);
 
     if (expenses > availableMoney) {
       expenses -= solutions.marketing;

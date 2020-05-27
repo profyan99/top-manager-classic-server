@@ -29,9 +29,8 @@ const addScenario = {
 const addGame = {
   method: 'POST',
   path: '/games',
-  async handler(request, h) {
-    await GameListService.addGame(extractUserFromRequest(request), request.payload);
-    return h.response();
+  async handler(request) {
+    return GameListService.addGame(extractUserFromRequest(request), request.payload);
   },
   options: {
     validate: {

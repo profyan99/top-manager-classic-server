@@ -4,8 +4,8 @@ import { Game } from '../../entity/game/Game';
 import { GamePeriod } from '../../entity/game/GamePeriod';
 import { Company } from '../../entity/player/Company';
 import { calculatePlayer } from '../player';
-import { server } from '../../index';
 import { Scenario } from '../../entity/game/Scenario';
+import logger from '../../logging';
 
 const getBuyersForCompany = (company: Company, period: GamePeriod, scenario: Scenario, industryBuyersAmount: number) => {
   let nir = 0;
@@ -41,7 +41,7 @@ const calculateGame = async (game: Game, em: EntityManager) => {
   const previousPeriod: GamePeriod = game.periods[game.currentPeriod];
   const scenario: Scenario = game.scenario;
 
-  server.logger().info(`Game ${game.name}[${game.id}]: calculating ${game.currentPeriod} period`);
+  logger.info(`Game ${game.name}[${game.id}]: calculating ${game.currentPeriod} period`);
 
   const companies = game.getActualPlayers();
 
@@ -163,7 +163,7 @@ const calculateGame = async (game: Game, em: EntityManager) => {
         * previousPeriod.totalSales : sales;
     }
     const ratingByGrow: number = Math.min(grow, 20.);
-    server.logger().info(`Rating parts:
+    logger.info(`Rating parts of ${player.companyName}:
     \tAP: ${ratingByAccumulatedProfit}
     \tDD: ${ratingByDemand}
     \tSP: ${ratingBySupply}
@@ -181,10 +181,10 @@ const calculateGame = async (game: Game, em: EntityManager) => {
     );
     await em.save(companyData);
 
-    server.logger().info(`Game ${game.name}[${game.id}] calculated ${player.companyName}: `, companyData);
+    logger.info(`Game ${game.name}[${game.id}]: calculated ${player.companyName}: `, companyData);
   }
 
-  server.logger().info(`Game ${game.name}[${game.id}]: calculated period: `, period);
+  logger.info(`Game ${game.name}[${game.id}]: calculated period: `, period);
   return em.save(period);
 };
 

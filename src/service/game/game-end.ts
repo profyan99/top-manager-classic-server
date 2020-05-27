@@ -4,7 +4,7 @@ import { Game } from '../../entity/game/Game';
 import { GameState } from '../../entity/game/GameState';
 import { User } from '../../entity/user/User';
 import { broadcastEndGamePeriodEvent, sendPlayerUpdate } from '../game-message-sender-service';
-import { server } from '../../index';
+import logger from '../../logging';
 
 const endGame = async (game: Game, em: EntityManager) => {
   const userRepository = em.getRepository(User);
@@ -51,8 +51,7 @@ const endGame = async (game: Game, em: EntityManager) => {
   broadcastEndGamePeriodEvent(game, game.currentPeriod + 1);
   actualPlayers.forEach((player) => sendPlayerUpdate(game, player, game.currentPeriod));
 
-  server.logger().info(`Game ${game.name}[${game.id}]: was ended.
-   ${winner.companyName} with ${winner.getCompanyByPeriod(game.currentPeriod).rating} rating win!`);
+  logger.info(`Game ${game.name}[${game.id}]: was ended. ${winner.companyName} with ${winner.getCompanyByPeriod(game.currentPeriod).rating} rating win!`);
 };
 
 export default endGame;

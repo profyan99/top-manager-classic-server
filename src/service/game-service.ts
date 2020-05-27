@@ -15,10 +15,10 @@ import GameHandler from './game';
 import * as PlayerHandler from './player';
 import UserService from './user-service';
 import MessageSender from './game-message-sender-service';
-import { server } from '../index';
 import { ERRORS } from '../utils/errors';
 import PlayerMapper from '../mapper/player-mapper';
 import mapUser from '../mapper/user-mapper';
+import logger from '../logging';
 
 const connectToGame = async (user: User, { gameId, password }, request) => {
   return await getManager().transaction(async em => {
@@ -39,7 +39,7 @@ const connectToGame = async (user: User, { gameId, password }, request) => {
       player.isConnected = true;
       await playerRepository.save(player);
       MessageSender.broadcastPlayerReconnected(game, player, game.currentPeriod - 1);
-      request.logger.info(`Player ${player.userName}[${player.id}]: reconnected to ${game.name}[${game.id}]`);
+      logger.info(`Player ${player.userName}[${player.id}]: reconnected to ${game.name}[${game.id}]`);
     } else if(!player) {
       if (game.state === GameState.PLAY) {
         throw Boom.badRequest(ERRORS.GAME.STARTED);
@@ -61,9 +61,9 @@ const connectToGame = async (user: User, { gameId, password }, request) => {
       game.players = game.players || [];
       game.players.push(player);
       await gameRepository.save(game);
-      request.logger.info(`Player ${player.userName}[${player.id}]: connected to ${game.name}[${game.id}]`);
+      logger.info(`Player ${player.userName}[${player.id}]: connected to ${game.name}[${game.id}]`);
     } else {
-      request.logger.info(`Player ${player.userName}[${player.id}]: connected to ${game.name}[${game.id}] without userName`);
+      logger.info(`Player ${player.userName}[${player.id}]: connected to ${game.name}[${game.id}] without userName`);
     }
     return {
       game: GameMapper.mapFull(game, game.currentPeriod),
@@ -101,8 +101,7 @@ const setCompanyName = async (user: User, { gameId, companyName }) => {
   MessageSender.broadcastUpdateGameEvent(game);
   MessageSender.broadcastPlayerConnected(game, player, game.currentPeriod);
   MessageSender.sendPlayerUpdate(game, player, 0);
-  server.logger().info(`Player ${player.userName}[${player.id}]:
-  complete connecting to ${game.name}[${game.id}] with ${companyName} name`);
+  logger.info(`Player ${player.userName}[${player.id}]: complete connecting to ${game.name}[${game.id}] with ${companyName} company name`);
 };
 
 const connectToGameViaWebsocket = async ({ gameId, userName }): Promise<boolean> => {
@@ -142,7 +141,7 @@ const disconnectFromGameViaWebsocket = async ({ userName, gameId }) => {
 
   MessageSender.broadcastPlayerDisconnected(game, player, game.currentPeriod);
   MessageSender.broadcastUpdateGameEvent(game);
-  server.logger().info(`Player ${player.userName}: disconnected from ${game.name}[${game.id}] reload: ${player.timeToEndReload}`);
+  logger.info(`Player ${player.userName}: disconnected from ${game.name}[${game.id}] reload: ${player.timeToEndReload}`);
 };
 
 const sendChatMessage = async (user: User, { message, gameId }) => {
@@ -183,11 +182,11 @@ const setPlayerSolutions = async (user: User, solutions, request) => {
   await gameRepository.save(game);
 
   MessageSender.broadcastPlayerUpdated(game, player, game.currentPeriod - 1);
-  request.logger.info(`Player ${player.userName}[${player.id}]: sends solutions. [bankrupt: ${player.isBankrupt}]`, solutions);
+  logger.info(`Player ${player.userName}[${player.id}]: sends solutions. [bankrupt: ${player.isBankrupt}]`, solutions);
 };
 
 const isGameNeedToBeRemoved = (game: Game, currentTime: number): boolean =>
-  game.getExistedPlayers().length === 0
+  game.getConnectedPlayers().length === 0
   && (game.state !== GameState.PREPARE || (currentTime - game.startCountDownTime) / 1000 >= game.periodDuration);
 
 export const updateGames = async () => {

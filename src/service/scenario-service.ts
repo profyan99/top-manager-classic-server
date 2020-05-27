@@ -5,6 +5,7 @@ import { Scenario } from '../entity/game/Scenario';
 import ScenarioMapper from '../mapper/scenario-mapper';
 import { User } from '../entity/user/User';
 import { ERRORS } from '../utils/errors';
+import logger from '../logging';
 
 export const getScenarios = async () => {
   return (await getRepository(Scenario).find())
@@ -20,6 +21,7 @@ export const addScenario = async (user: User, payload) => {
 
   const scenario: Scenario = new Scenario(payload);
   await scenarioRepository.save(scenario);
+  logger.info(`New scenario ${scenario.name} was added by ${user.userName}`);
   return ScenarioMapper.map(scenario);
 };
 
