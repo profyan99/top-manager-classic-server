@@ -1,23 +1,27 @@
-import {Entity, PrimaryGeneratedColumn, Column, CreateDateColumn} from "typeorm";
-import {UserRole} from "./UserRole";
-import {UserGameStats} from "./UserGameStats";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
+import { UserRole } from './UserRole';
+import { UserGameStats } from './UserGameStats';
 
 @Entity()
 export class User {
-
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   email: string;
 
-  @Column({unique: true})
+  @Column({ unique: true })
   userName: string;
 
   @Column()
   ip: string;
 
-  @CreateDateColumn({type: 'date'})
+  @CreateDateColumn({ type: 'date' })
   registerDate: string;
 
   @Column()
@@ -32,23 +36,34 @@ export class User {
   @Column()
   avatar: string;
 
-  @Column({default: false})
+  @Column({ default: false })
   socialUser: boolean;
 
   @Column({
-    type: "enum",
+    type: 'enum',
     enum: UserRole,
     array: true,
   })
   roles: UserRole[];
 
-  @Column(type => UserGameStats)
+  @Column(() => UserGameStats)
   gameStats: UserGameStats;
 
   @Column({ default: true })
   isConnected: boolean;
 
-  constructor(data?: { email; userName; ip; lastLogIn; password; avatar; roles; gameStats; socialUser; refreshToken }) {
+  constructor(data?: {
+    email;
+    userName;
+    ip;
+    lastLogIn;
+    password;
+    avatar;
+    roles;
+    gameStats;
+    socialUser;
+    refreshToken;
+  }) {
     if (data) {
       this.email = data.email;
       this.userName = data.userName;

@@ -1,10 +1,11 @@
-import {Game} from "../entity/game/Game";
+import { Game } from '../entity/game/Game';
 import WebsocketService from './websocket-service';
 import GameMapper from '../mapper/game-mapper';
 import PlayerMapper from '../mapper/player-mapper';
-import {Player} from "../entity/player/Player";
+import { Player } from '../entity/player/Player';
 
-const getGamePath = (game: Game): string => `${process.env.GAME_LIST_ROUTE}/${game.id}`;
+const getGamePath = (game: Game): string =>
+  `${process.env.GAME_LIST_ROUTE}/${game.id}`;
 
 const broadcastGamePreviewEvent = (game: Game, eventType: string) => {
   WebsocketService.publish(process.env.GAME_LIST_ROUTE, {
@@ -14,7 +15,12 @@ const broadcastGamePreviewEvent = (game: Game, eventType: string) => {
   });
 };
 
-const broadcastPlayerEvent = (game: Game, player: Player, eventType: string, period: number) => {
+const broadcastPlayerEvent = (
+  game: Game,
+  player: Player,
+  eventType: string,
+  period: number,
+) => {
   WebsocketService.publish(getGamePath(game), {
     objectType: 'PLAYER',
     eventType: eventType,
@@ -51,33 +57,57 @@ export const broadcastUpdateGameEvent = (game: Game) => {
   broadcastGamePreviewEvent(game, 'UPDATE');
 };
 
-export const broadcastPlayerReconnected = (game: Game, player: Player, period: number) => {
+export const broadcastPlayerReconnected = (
+  game: Game,
+  player: Player,
+  period: number,
+) => {
   broadcastPlayerEvent(game, player, 'RECONNECT', period);
 };
 
-export const broadcastPlayerConnected = (game: Game, player: Player, period: number) => {
+export const broadcastPlayerConnected = (
+  game: Game,
+  player: Player,
+  period: number,
+) => {
   broadcastPlayerEvent(game, player, 'CONNECT', period);
 };
 
-export const broadcastPlayerUpdated = (game: Game, player: Player, period: number) => {
+export const broadcastPlayerUpdated = (
+  game: Game,
+  player: Player,
+  period: number,
+) => {
   broadcastPlayerEvent(game, player, 'UPDATE', period);
 };
 
-export const broadcastPlayerDisconnected = (game: Game, player: Player, period: number) => {
+export const broadcastPlayerDisconnected = (
+  game: Game,
+  player: Player,
+  period: number,
+) => {
   broadcastPlayerEvent(game, player, 'DISCONNECT', period);
 };
 
-export const sendPlayerUpdate = (game: Game, player: Player, period: number) => {
-  WebsocketService.publish(getGamePath(game), {
-    objectType: 'COMPANY',
-    eventType: 'UPDATE',
-    body: PlayerMapper.mapFullByPeriod(player, period),
-  }, {
-    user: player.userName,
-  });
+export const sendPlayerUpdate = (
+  game: Game,
+  player: Player,
+  period: number,
+) => {
+  WebsocketService.publish(
+    getGamePath(game),
+    {
+      objectType: 'COMPANY',
+      eventType: 'UPDATE',
+      body: PlayerMapper.mapFullByPeriod(player, period),
+    },
+    {
+      user: player.userName,
+    },
+  );
 };
 
-export const broadcastMessageToGeneralChat = (message) => {
+export const broadcastMessageToGeneralChat = message => {
   broadcastMessage(process.env.GAME_LIST_ROUTE, message);
 };
 
@@ -108,7 +138,7 @@ export const broadcastRestartGameEvent = (game: Game, payload: object) => {
 };
 
 export const broadcastRejectRestartGameEvent = (game: Game, player: Player) => {
-  broadcastPlayerEvent(game, player,'RESTART_REJECT', game.currentPeriod);
+  broadcastPlayerEvent(game, player, 'RESTART_REJECT', game.currentPeriod);
 };
 
 export default {

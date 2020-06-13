@@ -2,7 +2,6 @@ import GameService from '../service/game-service';
 import GameListService from '../service/game-list-service';
 import ScenarioService from '../service/scenario-service';
 
-import GameValidator from './validator/game-validator';
 import { extractUserFromRequest } from './common';
 
 const getScenarios = {
@@ -10,14 +9,17 @@ const getScenarios = {
   path: '/scenarios',
   async handler() {
     return ScenarioService.getScenarios();
-  }
+  },
 };
 
 const addScenario = {
   method: 'POST',
   path: '/scenarios',
   async handler(request) {
-    return ScenarioService.addScenario(extractUserFromRequest(request), request.payload);
+    return ScenarioService.addScenario(
+      extractUserFromRequest(request),
+      request.payload,
+    );
   },
   options: {
     validate: {
@@ -30,7 +32,10 @@ const addGame = {
   method: 'POST',
   path: '/games',
   async handler(request) {
-    return GameListService.addGame(extractUserFromRequest(request), request.payload);
+    return GameListService.addGame(
+      extractUserFromRequest(request),
+      request.payload,
+    );
   },
   options: {
     validate: {
@@ -43,7 +48,8 @@ const addGame = {
   method: 'DELETE',
   path: '/games/{gameId}',
   async handler(request, h) {
-    await GameService.deleteGame(extractUserFromRequest(request), request.params);
+    await GameService.deleteGame(extractUserFromRequest(request),
+    request.params);
     return h.response();
   },
   options: {
@@ -65,7 +71,10 @@ const connectToGame = {
   method: 'POST',
   path: '/games/{gameId}',
   async handler(request) {
-    return GameService.connectToGame(extractUserFromRequest(request), { ...request.payload, ...request.params }, request);
+    return GameService.connectToGame(extractUserFromRequest(request), {
+      ...request.payload,
+      ...request.params,
+    });
   },
   options: {
     validate: {
@@ -78,8 +87,11 @@ const setCompanyName = {
   method: 'POST',
   path: '/games/{gameId}/company',
   async handler(request, h) {
-   await GameService.setCompanyName(extractUserFromRequest(request), { ...request.payload, ...request.params });
-   return h.response();
+    await GameService.setCompanyName(extractUserFromRequest(request), {
+      ...request.payload,
+      ...request.params,
+    });
+    return h.response();
   },
   options: {
     validate: {
@@ -92,7 +104,9 @@ const disconnectFromGame = {
   method: 'DELETE',
   path: '/games/{gameId}',
   async handler(request, h) {
-    await GameService.disconnectFromGame(extractUserFromRequest(request), { ...request.params });
+    await GameService.disconnectFromGame(extractUserFromRequest(request), {
+      ...request.params,
+    });
     return h.response();
   },
   options: {
@@ -106,7 +120,10 @@ const sendChatMessageToGeneral = {
   method: 'POST',
   path: '/games/messages',
   async handler(request, h) {
-    await GameService.sendChatMessage(extractUserFromRequest(request), request.payload);
+    await GameService.sendChatMessage(
+      extractUserFromRequest(request),
+      request.payload,
+    );
     return h.response();
   },
   options: {
@@ -120,7 +137,10 @@ const sendChatMessageToGame = {
   method: 'POST',
   path: '/games/{gameId}/messages',
   async handler(request, h) {
-    await GameService.sendChatMessage(extractUserFromRequest(request), { ...request.payload, ...request.params });
+    await GameService.sendChatMessage(extractUserFromRequest(request), {
+      ...request.payload,
+      ...request.params,
+    });
     return h.response();
   },
   options: {
@@ -134,8 +154,10 @@ const setPlayerSolutions = {
   method: 'POST',
   path: '/games/{gameId}/solutions',
   async handler(request, h) {
-    await GameService
-      .setPlayerSolutions(extractUserFromRequest(request), { ...request.payload, ...request.params }, request);
+    await GameService.setPlayerSolutions(extractUserFromRequest(request), {
+      ...request.payload,
+      ...request.params,
+    });
     return h.response();
   },
   options: {
@@ -149,7 +171,9 @@ const restartGame = {
   method: 'POST',
   path: '/games/{gameId}/restart',
   async handler(request) {
-    return GameListService.restartGame(extractUserFromRequest(request), { ...request.params });
+    return GameListService.restartGame(extractUserFromRequest(request), {
+      ...request.params,
+    });
   },
   options: {
     validate: {
@@ -162,7 +186,9 @@ const rejectRestartGame = {
   method: 'DELETE',
   path: '/games/{gameId}/restart',
   async handler(request, h) {
-    await GameListService.rejectRestartGame(extractUserFromRequest(request), { ...request.params });
+    await GameListService.rejectRestartGame(extractUserFromRequest(request), {
+      ...request.params,
+    });
     return h.response();
   },
   options: {

@@ -1,1 +1,2 @@
-export const extractUserFromRequest = (request) => request.auth.credentials.profile;
+export const extractUserFromRequest = request =>
+  request.auth.credentials.profile;

@@ -1,4 +1,4 @@
-import {Column} from "typeorm";
+import { Column } from 'typeorm';
 
 export class UserGameStats {
   @Column()
@@ -39,5 +39,4 @@ export class UserGameStats {
     this.leaveGameAmount = 0;
     this.complainAmount = 0;
   }
-
 }

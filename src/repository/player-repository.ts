@@ -1,6 +1,6 @@
 import { EntityRepository, Repository } from 'typeorm';
 
-import {Player} from "../entity/player/Player";
+import { Player } from '../entity/player/Player';
 
 @EntityRepository(Player)
 export class PlayerRepository extends Repository<Player> {
@@ -13,11 +13,7 @@ export class PlayerRepository extends Repository<Player> {
           id: gameId,
         },
       },
-      relations: [
-        'companyPeriods',
-        'game',
-        'user',
-      ],
+      relations: ['companyPeriods', 'game', 'user'],
     });
   }
 
@@ -30,11 +26,7 @@ export class PlayerRepository extends Repository<Player> {
           id: gameId,
         },
       },
-      relations: [
-        'game',
-        'user',
-      ],
+      relations: ['game', 'user'],
     });
   }
-
 }

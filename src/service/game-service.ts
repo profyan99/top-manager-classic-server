@@ -1,4 +1,4 @@
-import { getCustomRepository, getManager, getRepository } from 'typeorm';
+import { getCustomRepository, getManager } from 'typeorm';
 import * as Boom from '@hapi/boom';
 
 import { User } from '../entity/user/User';
@@ -11,7 +11,7 @@ import { PlayerRepository } from '../repository/player-repository';
 import { GameRepository } from '../repository/game-repository';
 
 import GameMapper from '../mapper/game-mapper';
-import GameHandler from './game';
+import * as GameHandler from './game';
 import * as PlayerHandler from './player';
 import UserService from './user-service';
 import MessageSender from './game-message-sender-service';
@@ -20,7 +20,7 @@ import PlayerMapper from '../mapper/player-mapper';
 import mapUser from '../mapper/user-mapper';
 import logger from '../logging';
 
-const connectToGame = async (user: User, { gameId, password }, request) => {
+const connectToGame = async (user: User, { gameId, password }) => {
   return await getManager().transaction(async em => {
     const gameRepository = em.getCustomRepository(GameRepository);
     const playerRepository = em.getCustomRepository(PlayerRepository);
@@ -30,17 +30,32 @@ const connectToGame = async (user: User, { gameId, password }, request) => {
       throw Boom.badRequest(ERRORS.GAME.INVALID);
     }
 
-    let player: Player = await playerRepository.findOneFullByUserNameAndGame(user.userName, gameId);
+    let player: Player = await playerRepository.findOneFullByUserNameAndGame(
+      user.userName,
+      gameId,
+    );
     if (player && player.companyName) {
-      if (!game.players.some((playerInGame) => playerInGame.userName === player.userName)) {
+      if (
+        !game.players.some(
+          playerInGame => playerInGame.userName === player.userName,
+        )
+      ) {
         throw Boom.badRequest(ERRORS.GAME.ALREADY_PLAYING);
       }
+
       player.timeToEndReload = 0;
       player.isConnected = true;
       await playerRepository.save(player);
-      MessageSender.broadcastPlayerReconnected(game, player, game.currentPeriod - 1);
-      logger.info(`Player ${player.userName}[${player.id}]: reconnected to ${game.name}[${game.id}]`);
-    } else if(!player) {
+      MessageSender.broadcastPlayerReconnected(
+        game,
+        player,
+        game.currentPeriod - 1,
+      );
+      logger.info(
+        `Player ${player.userName}[${player.id}]:
+         reconnected to ${game.name}[${game.id}]`,
+      );
+    } else if (!player) {
       if (game.state === GameState.PLAY) {
         throw Boom.badRequest(ERRORS.GAME.STARTED);
       }
@@ -61,13 +76,22 @@ const connectToGame = async (user: User, { gameId, password }, request) => {
       game.players = game.players || [];
       game.players.push(player);
       await gameRepository.save(game);
-      logger.info(`Player ${player.userName}[${player.id}]: connected to ${game.name}[${game.id}]`);
+      logger.info(
+        `Player ${player.userName}[${player.id}]:
+         connected to ${game.name}[${game.id}]`,
+      );
     } else {
-      logger.info(`Player ${player.userName}[${player.id}]: connected to ${game.name}[${game.id}] without userName`);
+      logger.info(
+        `Player ${player.userName}[${player.id}]: connected
+         to ${game.name}[${game.id}] without userName`,
+      );
     }
     return {
       game: GameMapper.mapFull(game, game.currentPeriod),
-      player: PlayerMapper.mapFullByPeriod(player, Math.max(game.currentPeriod - 1, 0)),
+      player: PlayerMapper.mapFullByPeriod(
+        player,
+        Math.max(game.currentPeriod - 1, 0),
+      ),
     };
   });
 };
@@ -77,12 +101,15 @@ const setCompanyName = async (user: User, { gameId, companyName }) => {
   const playerRepository = getCustomRepository(PlayerRepository);
 
   const game = await gameRepository.findOneWithoutPeriods(gameId);
-  if(!game) {
+  if (!game) {
     throw Boom.badRequest(ERRORS.GAME.INVALID);
   }
 
-  const player: Player = await playerRepository.findOneFullByUserNameAndGame(user.userName, gameId);
-  if(!player) {
+  const player: Player = await playerRepository.findOneFullByUserNameAndGame(
+    user.userName,
+    gameId,
+  );
+  if (!player) {
     throw Boom.badRequest(ERRORS.GAME.INVALID_GAME_PLAYER_ASSOCIATION);
   }
 
@@ -90,7 +117,7 @@ const setCompanyName = async (user: User, { gameId, companyName }) => {
     throw Boom.badRequest(ERRORS.GAME.COMPANY_NAME_ALREADY_SET);
   }
 
-  if (game.players.some((player) => player.companyName === companyName)) {
+  if (game.players.some(player => player.companyName === companyName)) {
     throw Boom.badRequest(ERRORS.GAME.COMPANY_EXISTED);
   }
 
@@ -101,19 +128,30 @@ const setCompanyName = async (user: User, { gameId, companyName }) => {
   MessageSender.broadcastUpdateGameEvent(game);
   MessageSender.broadcastPlayerConnected(game, player, game.currentPeriod);
   MessageSender.sendPlayerUpdate(game, player, 0);
-  logger.info(`Player ${player.userName}[${player.id}]: complete connecting to ${game.name}[${game.id}] with ${companyName} company name`);
+  logger.info(
+    `Player ${player.userName}[${player.id}]: complete connecting
+     to ${game.name}[${game.id}] with ${companyName} company name`,
+  );
 };
 
-const connectToGameViaWebsocket = async ({ gameId, userName }): Promise<boolean> => {
-  const game = await getCustomRepository(GameRepository).findOneWithoutPeriods(gameId);
-  return game && game.players.some((player) => player.userName === userName);
+const connectToGameViaWebsocket = async ({
+  gameId,
+  userName,
+}): Promise<boolean> => {
+  const game = await getCustomRepository(GameRepository).findOneWithoutPeriods(
+    gameId,
+  );
+  return game && game.players.some(player => player.userName === userName);
 };
 
 const disconnectFromGame = async (user: User, { gameId }): Promise<void> => {
   await getManager().transaction(async em => {
     const playerRepository = em.getCustomRepository(PlayerRepository);
 
-    const player = await playerRepository.findOneWithoutPeriods(user.userName, gameId);
+    const player = await playerRepository.findOneWithoutPeriods(
+      user.userName,
+      gameId,
+    );
     if (!player || player.game.id != gameId) {
       throw Boom.badRequest(ERRORS.GAME.INVALID_GAME_PLAYER_ASSOCIATION);
     }
@@ -127,12 +165,16 @@ const disconnectFromGame = async (user: User, { gameId }): Promise<void> => {
 };
 
 const disconnectFromGameViaWebsocket = async ({ userName, gameId }) => {
-  const player = await getCustomRepository(PlayerRepository).findOneFullByUserNameAndGame(userName, gameId);
+  const player = await getCustomRepository(
+    PlayerRepository,
+  ).findOneFullByUserNameAndGame(userName, gameId);
   if (!player) {
     return;
   }
 
-  const game: Game = await getCustomRepository(GameRepository).findOneWithoutPeriods(player.game.id);
+  const game: Game = await getCustomRepository(
+    GameRepository,
+  ).findOneWithoutPeriods(player.game.id);
   if (!game) {
     return;
   }
@@ -141,7 +183,10 @@ const disconnectFromGameViaWebsocket = async ({ userName, gameId }) => {
 
   MessageSender.broadcastPlayerDisconnected(game, player, game.currentPeriod);
   MessageSender.broadcastUpdateGameEvent(game);
-  logger.info(`Player ${player.userName}: disconnected from ${game.name}[${game.id}] reload: ${player.timeToEndReload}`);
+  logger.info(
+    `Player ${player.userName}: disconnected from
+    ${game.name}[${game.id}] reload: ${player.timeToEndReload}`,
+  );
 };
 
 const sendChatMessage = async (user: User, { message, gameId }) => {
@@ -152,7 +197,9 @@ const sendChatMessage = async (user: User, { message, gameId }) => {
   };
 
   if (gameId) {
-    const game = await getCustomRepository(GameRepository).findOneWithoutPeriods(gameId);
+    const game = await getCustomRepository(
+      GameRepository,
+    ).findOneWithoutPeriods(gameId);
     if (!game) {
       throw Boom.badRequest(ERRORS.GAME.INVALID);
     }
@@ -163,17 +210,24 @@ const sendChatMessage = async (user: User, { message, gameId }) => {
   }
 };
 
-const setPlayerSolutions = async (user: User, solutions, request) => {
+const setPlayerSolutions = async (user: User, solutions) => {
   const playerRepository = getCustomRepository(PlayerRepository);
   const gameRepository = getCustomRepository(GameRepository);
 
-  const player: Player = await playerRepository.findOneFullByUserNameAndGame(user.userName, solutions.gameId);
+  const player: Player = await playerRepository.findOneFullByUserNameAndGame(
+    user.userName,
+    solutions.gameId,
+  );
   if (!player) {
     throw Boom.badRequest(ERRORS.GAME.NOT_PLAYING);
   }
 
   const game: Game = await gameRepository.findOneWithoutPeriods(player.game.id);
-  if (player.state !== PlayerState.THINK || !game.isSendSolutionsAllowed || player.isBankrupt) {
+  if (
+    player.state !== PlayerState.THINK ||
+    !game.isSendSolutionsAllowed ||
+    player.isBankrupt
+  ) {
     throw Boom.badRequest(ERRORS.GAME.SOLUTIONS);
   }
 
@@ -182,15 +236,22 @@ const setPlayerSolutions = async (user: User, solutions, request) => {
   await gameRepository.save(game);
 
   MessageSender.broadcastPlayerUpdated(game, player, game.currentPeriod - 1);
-  logger.info(`Player ${player.userName}[${player.id}]: sends solutions. [bankrupt: ${player.isBankrupt}]`, solutions);
+  logger.info(
+    `Player ${player.userName}[${player.id}]:
+    sends solutions. [bankrupt: ${player.isBankrupt}]`,
+    solutions,
+  );
 };
 
 const isGameNeedToBeRemoved = (game: Game, currentTime: number): boolean =>
-  game.getConnectedPlayers().length === 0
-  && (game.state !== GameState.PREPARE || (currentTime - game.startCountDownTime) / 1000 >= game.periodDuration);
+  game.getConnectedPlayers().length === 0 &&
+  (game.state !== GameState.PREPARE ||
+    (currentTime - game.startCountDownTime) / 1000 >= game.periodDuration);
 
 export const updateGames = async () => {
-  const allGames: Game[] = await getCustomRepository(GameRepository).findWithPlayers();
+  const allGames: Game[] = await getCustomRepository(
+    GameRepository,
+  ).findWithPlayers();
   const currentTime = Date.now();
 
   for (const game of allGames) {

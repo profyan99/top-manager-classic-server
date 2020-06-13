@@ -2,7 +2,7 @@ import * as Hapi from '@hapi/hapi';
 
 import authValidation from './auth-validation';
 import authRoutes from '../route/auth-routes';
-import {ServerRoute} from "@hapi/hapi";
+import { ServerRoute } from '@hapi/hapi';
 
 const register = async (server: Hapi.Server) => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -46,16 +46,16 @@ const register = async (server: Hapi.Server) => {
     validate: authValidation,
     verifyOptions: {
       algorithms: ['HS256'],
-    }
+    },
   });
 
-  server.auth.default("jwt");
+  server.auth.default('jwt');
   server.route(authRoutes as ServerRoute[]);
 };
 
 export default {
   register,
-  name: "Authentication",
-  version: "1.0.0",
+  name: 'Authentication',
+  version: '1.0.0',
   once: true,
 };

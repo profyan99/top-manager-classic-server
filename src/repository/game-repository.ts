@@ -1,10 +1,9 @@
-import {EntityRepository, Repository} from "typeorm";
+import { EntityRepository, Repository } from 'typeorm';
 
-import {Game} from "../entity/game/Game";
+import { Game } from '../entity/game/Game';
 
 @EntityRepository(Game)
 export class GameRepository extends Repository<Game> {
-
   findWithoutPeriods() {
     return this.find({
       where: {
@@ -25,11 +24,7 @@ export class GameRepository extends Repository<Game> {
       where: {
         isRemoved: false,
       },
-      relations: [
-        'owner',
-        'players',
-        'players.user',
-      ],
+      relations: ['owner', 'players', 'players.user'],
     });
   }
 

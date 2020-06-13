@@ -1,9 +1,9 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Game } from "./Game";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { Game } from './Game';
 
 @Entity()
 export class GamePeriod {
-
   @PrimaryGeneratedColumn()
   id: number;
   @Column({ default: 0 })
@@ -22,7 +22,6 @@ export class GamePeriod {
   totalBuyers: number;
   @Column({ default: 0 })
   totalSales: number;
-
 
   @Column({ default: 0, type: 'real' })
   summaryPeriodPower: number;
@@ -45,7 +44,10 @@ export class GamePeriod {
   @Column({ default: 0, type: 'real' })
   averagePeriodUsingPower: number;
 
-  @ManyToOne(type => Game, game => game.periods)
+  @ManyToOne(
+    () => Game,
+    game => game.periods,
+  )
   game: Game;
 
   constructor() {

@@ -1,6 +1,6 @@
 import UserService from '../service/user-service';
 import UserValidator from './validator/user-validator';
-import {extractUserFromRequest} from "./common";
+import { extractUserFromRequest } from './common';
 
 const userRoutes = [
   {
@@ -35,7 +35,7 @@ const userRoutes = [
     path: '/profile',
     handler(request) {
       return UserService.getCurrentUser(extractUserFromRequest(request));
-    }
+    },
   },
   {
     method: 'GET',

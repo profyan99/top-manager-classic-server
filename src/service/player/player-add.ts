@@ -7,7 +7,13 @@ import { PlayerState } from '../../entity/player/PlayerState';
 import { Company } from '../../entity/player/Company';
 import { PlayerRepository } from '../../repository/player-repository';
 
-const addPlayer = async (user: User, game: Game, companyName: string, em: EntityManager, initialProps?: object): Promise<Player> => {
+const addPlayer = async (
+  user: User,
+  game: Game,
+  companyName: string,
+  em: EntityManager,
+  initialProps?: object,
+): Promise<Player> => {
   const playersAmount = game.maxPlayers;
   const playerRepository = em.getCustomRepository(PlayerRepository);
   const companyRepository = em.getRepository(Company);
@@ -32,7 +38,7 @@ const addPlayer = async (user: User, game: Game, companyName: string, em: Entity
   initialCompany.price = 30;
   initialCompany.production = 3360 / playersAmount;
   initialCompany.marketing = 8400 / playersAmount;
-  initialCompany.investments = 4200 / playersAmount * 2;
+  initialCompany.investments = (4200 / playersAmount) * 2;
   initialCompany.nir = 3360 / playersAmount;
 
   initialCompany.bank = 85870 / playersAmount;
@@ -48,7 +54,7 @@ const addPlayer = async (user: User, game: Game, companyName: string, em: Entity
   firstPeriodCompany.price = 30;
   firstPeriodCompany.production = 3360 / playersAmount;
   firstPeriodCompany.marketing = 8400 / playersAmount;
-  firstPeriodCompany.investments = 4200 / playersAmount * 2;
+  firstPeriodCompany.investments = (4200 / playersAmount) * 2;
   firstPeriodCompany.nir = 3360 / playersAmount;
 
   await companyRepository.save(initialCompany);

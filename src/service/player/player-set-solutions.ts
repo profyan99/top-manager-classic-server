@@ -1,27 +1,57 @@
 import { getManager } from 'typeorm';
 
-import { Player } from "../../entity/player/Player";
-import { Company } from "../../entity/player/Company";
-import { PlayerState } from "../../entity/player/PlayerState";
-import { Game } from "../../entity/game/Game";
-import { Scenario } from "../../entity/game/Scenario";
-import { PlayerRepository } from "../../repository/player-repository";
+import { Player } from '../../entity/player/Player';
+import { Company } from '../../entity/player/Company';
+import { PlayerState } from '../../entity/player/PlayerState';
+import { Game } from '../../entity/game/Game';
+import { Scenario } from '../../entity/game/Scenario';
+import { PlayerRepository } from '../../repository/player-repository';
 import logger from '../../logging';
 
 const setPlayerSolutions = async (game: Game, player: Player, solutions) => {
   return await getManager().transaction(async em => {
-    const oldCompany: Company = player.getCompanyByPeriod(game.currentPeriod - 1);
-    const currentCompany: Company = player.getCompanyByPeriod(game.currentPeriod);
+    const oldCompany: Company = player.getCompanyByPeriod(
+      game.currentPeriod - 1,
+    );
+    const currentCompany: Company = player.getCompanyByPeriod(
+      game.currentPeriod,
+    );
     const scenario: Scenario = game.scenario;
 
-    const availableMoney: number = scenario.loanLimit + scenario.extraLoanLimit + oldCompany.bank - oldCompany.loan;
+    const availableMoney: number =
+      scenario.loanLimit +
+      scenario.extraLoanLimit +
+      oldCompany.bank -
+      oldCompany.loan;
 
-    let expenses: number = Math.round(solutions.investments + solutions.marketing + solutions.nir
-      + oldCompany.productionCost * solutions.production);
+    let expenses: number = Math.round(
+      solutions.investments +
+        solutions.marketing +
+        solutions.nir +
+        oldCompany.productionCost * solutions.production,
+    );
 
-    logger.info(`[Solutions] AvailableMoney of ${player.companyName}: `, scenario.loanLimit, scenario.extraLoanLimit, (oldCompany.bank - oldCompany.loan));
-    logger.info(`[Solutions] Expenses of ${player.companyName}: `, solutions.investments, solutions.marketing, solutions.nir, (oldCompany.productionCost * oldCompany.production));
-    logger.info(`[Solutions] Summary expenses and available money of ${player.companyName}: `, solutions, expenses, availableMoney);
+    logger.debug(
+      `[Solutions] AvailableMoney of ${player.companyName}: `,
+      scenario.loanLimit,
+      scenario.extraLoanLimit,
+      oldCompany.bank - oldCompany.loan,
+    );
+    logger.debug(`[Solutions] Expenses of ${player.companyName}: `, {
+      prod: oldCompany.productionCost * oldCompany.production,
+      investments: solutions.investments,
+      nir: solutions.nir,
+      marketing: solutions.marketing,
+    });
+    logger.debug(
+      `[Solutions] Summary expenses and available
+       money of ${player.companyName}: `,
+      {
+        solutions,
+        expenses,
+        availableMoney,
+      },
+    );
 
     if (expenses > availableMoney) {
       expenses -= solutions.marketing;

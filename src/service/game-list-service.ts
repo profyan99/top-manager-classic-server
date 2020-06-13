@@ -1,12 +1,18 @@
-import { getCustomRepository, getManager, getRepository, Repository } from 'typeorm';
+import {
+  getCustomRepository,
+  getManager,
+  getRepository,
+  Repository,
+} from 'typeorm';
 import * as Boom from '@hapi/boom';
 
-import GameHandler from './game';
-import MessageSender, { broadcastGamesMetaDataUpdateEvent } from './game-message-sender-service';
+import * as GameHandler from './game';
+import MessageSender, {
+  broadcastGamesMetaDataUpdateEvent,
+} from './game-message-sender-service';
 import { GameRepository } from '../repository/game-repository';
 import UserService from './user-service';
 import GameMapper from '../mapper/game-mapper';
-import { server } from '../index';
 
 import { Scenario } from '../entity/game/Scenario';
 import { ERRORS } from '../utils/errors';
@@ -25,7 +31,9 @@ export const addGame = async (user: User, payload) => {
   const scenarioRepository: Repository<Scenario> = getRepository(Scenario);
 
   const scenarioName = payload.scenario || process.env.DEFAULT_SCENARIO;
-  const scenario: Scenario = await scenarioRepository.findOne({ where: { name: scenarioName } });
+  const scenario: Scenario = await scenarioRepository.findOne({
+    where: { name: scenarioName },
+  });
   if (!scenario) {
     throw Boom.badRequest(ERRORS.SCENARIO.INVALID);
   }
@@ -34,7 +42,9 @@ export const addGame = async (user: User, payload) => {
 
   const newGame: Game = await GameHandler.addGame(payload);
   MessageSender.broadcastAddGameEvent(newGame);
-  logger.info(`Added new game ${newGame.name}[${newGame.id}] by ${user.userName}`);
+  logger.info(
+    `Added new game ${newGame.name}[${newGame.id}] by ${user.userName}`,
+  );
   return GameMapper.mapPreview(newGame);
 };
 
@@ -59,12 +69,13 @@ export const getGamesMetaData = () => {
 };
 
 export const getGames = async () => {
-  const games = (await getCustomRepository(GameRepository).findWithoutPeriods())
-    .map((game) => GameMapper.mapPreview(game));
+  const games = (
+    await getCustomRepository(GameRepository).findWithoutPeriods()
+  ).map(game => GameMapper.mapPreview(game));
   return {
     games,
     meta: getGamesMetaData(),
-  }
+  };
 };
 
 export const onUserConnected = async (user: User) => {
@@ -76,7 +87,7 @@ export const onUserConnected = async (user: User) => {
 
 export const onUserDisconnected = async (user: User) => {
   await UserService.setUserOnline(user, false);
-  onlineUsers = onlineUsers.filter((onlineUser) => onlineUser.id !== user.id);
+  onlineUsers = onlineUsers.filter(onlineUser => onlineUser.id !== user.id);
   broadcastGamesMetaDataUpdateEvent({ playersAmount: onlineUsers.length });
   logger.info(`User ${user.userName} disconnected via websocket`);
 };
@@ -104,8 +115,8 @@ export const restartGame = async (user: User, { gameId }) => {
       isRemoved: false,
     };
     const newGame: Game = await GameHandler.addGame(newGameProps);
-    const playersAddQueries = game.players.map((player) =>
-      PlayerHandler.addPlayer(player.user, newGame, '', em)
+    const playersAddQueries = game.players.map(player =>
+      PlayerHandler.addPlayer(player.user, newGame, '', em),
     );
 
     newGame.players = await Promise.all(playersAddQueries);
@@ -117,7 +128,10 @@ export const restartGame = async (user: User, { gameId }) => {
 
     MessageSender.broadcastRestartGameEvent(game, newGamePayload);
     MessageSender.broadcastAddGameEvent(newGame);
-    logger.info(`User ${user.userName} attempt to restart ${game.name}[${game.id}] with new id - ${newGame.id}`);
+    logger.info(
+      `User ${user.userName} attempt to
+       restart ${game.name}[${game.id}] with new id - ${newGame.id}`,
+    );
     return newGame.id;
   });
 };
@@ -126,13 +140,14 @@ export const rejectRestartGame = async (user: User, { gameId }) => {
   const gameRepository = getCustomRepository(GameRepository);
   const game = await gameRepository.findOneWithoutPeriods(gameId);
 
-  if(!game) {
+  if (!game) {
     throw Boom.badRequest(ERRORS.GAME.INVALID);
   }
 
-  const player: Player = await getCustomRepository(PlayerRepository)
-    .findOneFullByUserNameAndGame(user.userName, gameId);
-  if(!player || player.game.id !== game.id) {
+  const player: Player = await getCustomRepository(
+    PlayerRepository,
+  ).findOneFullByUserNameAndGame(user.userName, gameId);
+  if (!player || player.game.id !== game.id) {
     throw Boom.badRequest(ERRORS.GAME.INVALID_GAME_PLAYER_ASSOCIATION);
   }
 

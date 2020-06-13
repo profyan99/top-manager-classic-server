@@ -8,8 +8,9 @@ import { ERRORS } from '../utils/errors';
 import logger from '../logging';
 
 export const getScenarios = async () => {
-  return (await getRepository(Scenario).find())
-    .map((scenario) => ScenarioMapper.map(scenario));
+  return (await getRepository(Scenario).find()).map(scenario =>
+    ScenarioMapper.map(scenario),
+  );
 };
 
 export const addScenario = async (user: User, payload) => {

@@ -1,4 +1,4 @@
-import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Scenario {
@@ -43,7 +43,7 @@ export class Scenario {
   shareNirEffect: number;
 
   public constructor(props?: ScenarioProps) {
-    if(props) {
+    if (props) {
       this.name = props.name;
       this.description = props.description;
       this.loanLimit = props.loanLimit;

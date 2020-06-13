@@ -1,9 +1,8 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Player } from "./Player";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Player } from './Player';
 
 @Entity()
 export class Company {
-
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -98,8 +97,10 @@ export class Company {
   shareEffectRd: number;
   shareEffectPr: number;
 
-  @ManyToOne(type => Player, player => player.companyPeriods,
-    { onDelete: 'CASCADE' })
+  @ManyToOne(
+    () => Player,
+    player => player.companyPeriods,
+    { onDelete: 'CASCADE' },
+  )
   player: Player;
-
 }

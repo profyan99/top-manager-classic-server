@@ -1,5 +1,5 @@
 import UserService from '../service/user-service';
-import {User} from "../entity/user/User";
+import { User } from '../entity/user/User';
 
 interface ValidationPayload {
   isValid: boolean;
@@ -19,5 +19,5 @@ export default async (decoded): Promise<ValidationPayload> => {
       profile: user,
       user: user.userName,
     },
-  }
+  };
 };

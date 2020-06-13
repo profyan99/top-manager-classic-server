@@ -1,18 +1,18 @@
-import { getManager } from "typeorm";
+import { getManager } from 'typeorm';
 
-import { Game } from "../../entity/game/Game";
-import { PlayerState } from "../../entity/player/PlayerState";
-import addNewCompany from "../player/player-add-new-company";
+import { Game } from '../../entity/game/Game';
+import { PlayerState } from '../../entity/player/PlayerState';
 import {
   broadcastNewGamePeriodEvent,
-  sendPlayerUpdate
-} from "../game-message-sender-service";
-import { GameRepository } from "../../repository/game-repository";
-import calculateGame from "./game-calculation";
-import removeInactivePlayers from "./game-remove-players";
-import { Company } from "../../entity/player/Company";
+  sendPlayerUpdate,
+} from '../game-message-sender-service';
+import { GameRepository } from '../../repository/game-repository';
+import calculateGame from './game-calculation';
+import removeInactivePlayers from './game-remove-players';
+import { Company } from '../../entity/player/Company';
 import endGame from './game-end';
 import logger from '../../logging';
+import { addNewCompany } from '../player';
 
 const handleNewPeriod = async (game: Game, currentTime: number) => {
   return await getManager().transaction(async em => {
@@ -26,7 +26,10 @@ const handleNewPeriod = async (game: Game, currentTime: number) => {
     const newGamePeriod = await calculateGame(game, em);
     game.periods.push(newGamePeriod);
 
-    if (game.currentPeriod >= game.maxPeriods || game.getBankruptCount() >= game.players.length) {
+    if (
+      game.currentPeriod >= game.maxPeriods ||
+      game.getBankruptCount() >= game.players.length
+    ) {
       await endGame(game, em);
     } else {
       const actualPlayers = game.getActualPlayers();
@@ -41,12 +44,15 @@ const handleNewPeriod = async (game: Game, currentTime: number) => {
       }
       game.startCountDownTime = Date.now();
       broadcastNewGamePeriodEvent(game, game.currentPeriod);
-      actualPlayers.forEach((player) => sendPlayerUpdate(game, player, game.currentPeriod - 1));
-      logger.info(`Game ${game.name}[${game.id}]: new period [${game.currentPeriod}]`);
+      actualPlayers.forEach(player =>
+        sendPlayerUpdate(game, player, game.currentPeriod - 1),
+      );
+      logger.info(
+        `Game ${game.name}[${game.id}]: new period [${game.currentPeriod}]`,
+      );
     }
     return gameRepository.save(game);
   });
 };
 
 export default handleNewPeriod;
-

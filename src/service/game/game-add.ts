@@ -1,10 +1,10 @@
-import { getManager } from "typeorm";
+import { getManager } from 'typeorm';
 
-import { Game } from "../../entity/game/Game";
-import { GamePeriod } from "../../entity/game/GamePeriod";
+import { Game } from '../../entity/game/Game';
+import { GamePeriod } from '../../entity/game/GamePeriod';
 
-const addGame = async (payload) => {
-  return getManager().transaction(async (em) => {
+const addGame = async payload => {
+  return getManager().transaction(async em => {
     payload.startCountDownTime = Date.now();
 
     const game: Game = new Game(payload);

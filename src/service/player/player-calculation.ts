@@ -1,6 +1,6 @@
-import { Company } from "../../entity/player/Company";
-import { Game } from "../../entity/game/Game";
-import { Scenario } from "../../entity/game/Scenario";
+import { Company } from '../../entity/player/Company';
+import { Game } from '../../entity/game/Game';
+import { Scenario } from '../../entity/game/Scenario';
 import { Player } from '../../entity/player/Player';
 import logger from '../../logging';
 
@@ -9,7 +9,11 @@ const calculatePlayer = (player: Player, game: Game): Company => {
   const companyNew: Company = player.getCompanyByPeriod(game.currentPeriod);
   const scenario: Scenario = game.scenario;
 
-  logger.info(`Calculate company of ${player.companyName}:`, companyOld, companyNew);
+  logger.info(
+    `Calculate company of ${player.companyName}:`,
+    companyOld,
+    companyNew,
+  );
 
   companyNew.storageCost = companyOld.storage; // стоимость хранения = склад
   companyNew.fullPower = companyOld.futurePower;
@@ -22,7 +26,8 @@ const calculatePlayer = (player: Player, game: Game): Company => {
     companyNew.backlogSales = companyNew.receivedOrders - companyOld.sales;
   } else {
     companyNew.sales = companyNew.receivedOrders;
-    companyNew.storage = companyOld.storage - companyNew.receivedOrders + companyNew.production;
+    companyNew.storage =
+      companyOld.storage - companyNew.receivedOrders + companyNew.production;
     companyNew.backlogSales = 0;
   }
 
@@ -30,18 +35,29 @@ const calculatePlayer = (player: Player, game: Game): Company => {
   companyNew.revenue = companyNew.price * companyNew.sales;
 
   // амортизация
-  if (companyNew.investments < companyOld.machineTools * scenario.deprecationFactor) {
+  if (
+    companyNew.investments <
+    companyOld.machineTools * scenario.deprecationFactor
+  ) {
     const machines: number = companyOld.machineTools;
     companyNew.machineTools = Math.round(
-      machines - (machines * scenario.deprecationFactor - companyNew.investments) / scenario.machineCost
+      machines -
+        (machines * scenario.deprecationFactor - companyNew.investments) /
+          scenario.machineCost,
     );
   }
-  companyNew.amortization = companyNew.machineTools * scenario.deprecationFactor;
-  companyNew.additionalInvestments = Math.max(0, companyNew.investments - companyNew.amortization);
+  companyNew.amortization =
+    companyNew.machineTools * scenario.deprecationFactor;
+  companyNew.additionalInvestments = Math.max(
+    0,
+    companyNew.investments - companyNew.amortization,
+  );
 
   // мощность след.периода
   companyNew.futurePower = Math.round(
-    (companyNew.additionalInvestments + companyNew.machineTools * scenario.machineCost) / scenario.machineCost
+    (companyNew.additionalInvestments +
+      companyNew.machineTools * scenario.machineCost) /
+      scenario.machineCost,
   );
   companyNew.machineTools = companyNew.futurePower;
 
@@ -50,15 +66,20 @@ const calculatePlayer = (player: Player, game: Game): Company => {
   companyNew.SPPT = Math.round(companyNew.sales * companyOld.productionCost);
 
   const usingPower: number = companyNew.usingPower;
-  let coefficient = 5. * Math.pow(usingPower, 2.) - 8. * usingPower + 4.2;
+  let coefficient = 5 * Math.pow(usingPower, 2) - 8 * usingPower + 4.2;
   if (usingPower === 0) {
-    coefficient = 1.;
+    coefficient = 1;
   }
-  companyNew.productionCost = (((4200. / game.maxPlayers) / companyNew.futurePower) * 15. + 3.) * coefficient;
+  companyNew.productionCost =
+    ((4200 / game.maxPlayers / companyNew.futurePower) * 15 + 3) * coefficient;
   companyNew.usingPower = companyNew.usingPower * 100;
 
-  const expenses: number = Math.round(companyNew.investments + companyNew.nir + companyNew.marketing
-    + companyNew.productionCost * companyNew.production);
+  const expenses: number = Math.round(
+    companyNew.investments +
+      companyNew.nir +
+      companyNew.marketing +
+      companyNew.productionCost * companyNew.production,
+  );
 
   // займы
   companyNew.loan = companyOld.loan;
@@ -68,24 +89,30 @@ const calculatePlayer = (player: Player, game: Game): Company => {
   }
 
   if (companyNew.loan < scenario.loanLimit) {
-    companyNew.bankInterest = Math.round(companyNew.loan * scenario.bankRate / 4.);
+    companyNew.bankInterest = Math.round(
+      (companyNew.loan * scenario.bankRate) / 4,
+    );
   } else {
-    companyNew.bankInterest =  Math.round(scenario.loanLimit * scenario.bankRate / 4.
-    + (companyNew.loan - scenario.loanLimit) * scenario.extraBankRate / 4.);
+    companyNew.bankInterest = Math.round(
+      (scenario.loanLimit * scenario.bankRate) / 4 +
+        ((companyNew.loan - scenario.loanLimit) * scenario.extraBankRate) / 4,
+    );
   }
 
   // тайные отнимания
-  companyNew.productionCostAll = Math.round(companyNew.productionCost * companyNew.production);
+  companyNew.productionCostAll = Math.round(
+    companyNew.productionCost * companyNew.production,
+  );
 
   companyNew.grossIncome = companyNew.revenue - companyNew.SPPT;
-  companyNew.profitTax = companyNew.revenue -
-    (companyNew.storageCost
-      + companyNew.bankInterest
-      + companyNew.SPPT
-      + companyNew.amortization
-      + companyNew.marketing
-      + companyNew.nir)
-  ;
+  companyNew.profitTax =
+    companyNew.revenue -
+    (companyNew.storageCost +
+      companyNew.bankInterest +
+      companyNew.SPPT +
+      companyNew.amortization +
+      companyNew.marketing +
+      companyNew.nir);
 
   if (companyNew.bank < companyNew.additionalInvestments) {
     companyNew.loan += companyNew.additionalInvestments - companyNew.bank;
@@ -110,10 +137,14 @@ const calculatePlayer = (player: Player, game: Game): Company => {
     }
   }
 
-  companyNew.accumulatedProfit = companyOld.accumulatedProfit + companyNew.netProfit;
-  companyNew.activeStorage = Math.round(companyNew.storage * companyNew.productionCost);
+  companyNew.accumulatedProfit =
+    companyOld.accumulatedProfit + companyNew.netProfit;
+  companyNew.activeStorage = Math.round(
+    companyNew.storage * companyNew.productionCost,
+  );
   companyNew.kapInvests = companyNew.fullPower * 40;
-  companyNew.sumActives = companyOld.kapInvests + companyNew.activeStorage + companyNew.bank;
+  companyNew.sumActives =
+    companyOld.kapInvests + companyNew.activeStorage + companyNew.bank;
 
   companyNew.sumMarketing += companyNew.marketing;
   companyNew.sumNir += companyNew.nir;

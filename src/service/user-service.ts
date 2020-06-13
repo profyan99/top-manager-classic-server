@@ -1,7 +1,12 @@
 import * as Boom from '@hapi/boom';
 import * as bcrypt from 'bcrypt';
 import * as JWT from 'jsonwebtoken';
-import { EntityManager, getCustomRepository, getManager, getRepository } from 'typeorm';
+import {
+  EntityManager,
+  getCustomRepository,
+  getManager,
+  getRepository,
+} from 'typeorm';
 
 import { User } from '../entity/user/User';
 import { UserRole } from '../entity/user/UserRole';
@@ -32,7 +37,9 @@ const getUserByRefreshToken = (refreshToken: string): Promise<User> => {
 };
 
 const generateJWT = (user: User) => {
-  return JWT.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION_TIME });
+  return JWT.sign({ id: user.id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRATION_TIME,
+  });
 };
 
 const generateRefreshToken = () => {
@@ -41,7 +48,9 @@ const generateRefreshToken = () => {
 
 const addUser = async (request, { userName, email, password, avatar }) => {
   return await getManager().transaction(async em => {
-    const userRepository: UserRepository = em.getCustomRepository(UserRepository);
+    const userRepository: UserRepository = em.getCustomRepository(
+      UserRepository,
+    );
 
     if (await userRepository.findOne({ where: { userName } })) {
       throw Boom.badRequest(ERRORS.USER.EXISTED.NAME);
@@ -51,13 +60,16 @@ const addUser = async (request, { userName, email, password, avatar }) => {
       throw Boom.badRequest(ERRORS.USER.EXISTED.EMAIL);
     }
 
-    const encryptedPassword = password ? await bcrypt.hash(password, parseInt(process.env.PASSWORD_SALT_ROUNDS)) : password;
+    const encryptedPassword = password
+      ? await bcrypt.hash(password, parseInt(process.env.PASSWORD_SALT_ROUNDS))
+      : password;
     const user: User = new User({
       email: email,
       userName: userName,
       avatar: avatar,
       password: encryptedPassword,
-      ip: request.headers['x-forwarded-for'] || request.info.remoteAddress || '',
+      ip:
+        request.headers['x-forwarded-for'] || request.info.remoteAddress || '',
       lastLogIn: new Date(),
       roles: [UserRole.PLAYER, UserRole.UNVERIFIED],
       gameStats: new UserGameStats(),
@@ -70,7 +82,10 @@ const addUser = async (request, { userName, email, password, avatar }) => {
   });
 };
 
-const loginUserThrowSocial = async (request, data: {userName; email; password; avatar}) => {
+const loginUserThrowSocial = async (
+  request,
+  data: { userName; email; password; avatar },
+) => {
   const userRepository: UserRepository = getCustomRepository(UserRepository);
 
   let user: User = await getUserByUserName(data.userName);
@@ -91,7 +106,8 @@ const loginUserThrowSocial = async (request, data: {userName; email; password; a
 const loginUser = async ({ userName, password }) => {
   const userRepository: UserRepository = getCustomRepository(UserRepository);
 
-  const user: User = await userRepository.findOne({ where: { userName } })
+  const user: User = await userRepository
+    .findOne({ where: { userName } })
     .catch(() => {
       throw Boom.badRequest(ERRORS.USER.INVALID_PASSWORD);
     });
@@ -116,7 +132,6 @@ const loginUser = async ({ userName, password }) => {
     accessToken: generateJWT(user),
     refreshToken: user.refreshToken,
   };
-
 };
 
 export const addPlayerLeaveGame = async (user: User, em?: EntityManager) => {
@@ -127,7 +142,11 @@ export const addPlayerLeaveGame = async (user: User, em?: EntityManager) => {
   logger.info(`Add player leave game ${user.userName}`);
 };
 
-export const setUserOnline = async (user: User, isConnected: boolean, em?: EntityManager) => {
+export const setUserOnline = async (
+  user: User,
+  isConnected: boolean,
+  em?: EntityManager,
+) => {
   const userRepository = em ? em.getRepository(User) : getRepository(User);
   if (!user) {
     return;
@@ -139,8 +158,8 @@ export const setUserOnline = async (user: User, isConnected: boolean, em?: Entit
 export const getOnlineUsers = async () => {
   const users = await getRepository(User).find({
     where: {
-      isConnected: true
-    }
+      isConnected: true,
+    },
   });
   return users.map(mapUser);
 };

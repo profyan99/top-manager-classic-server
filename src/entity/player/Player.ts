@@ -1,8 +1,15 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { PlayerState } from "./PlayerState";
-import { User } from "../user/User";
-import { Game, GameProps } from '../game/Game';
-import { Company } from "./Company";
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+
+import { PlayerState } from './PlayerState';
+import { User } from '../user/User';
+import { Game } from '../game/Game';
+import { Company } from './Company';
 
 @Entity()
 export class Player {
@@ -16,7 +23,7 @@ export class Player {
   companyName: string;
 
   @Column({
-    type: "enum",
+    type: 'enum',
     enum: PlayerState,
     default: PlayerState.WAIT,
   })
@@ -34,23 +41,28 @@ export class Player {
   @Column({ default: false })
   isRemoved: boolean;
 
-  @ManyToOne(type => User)
+  @ManyToOne(() => User)
   user: User;
 
-  @ManyToOne(type => Game, game => game.players)
+  @ManyToOne(
+    () => Game,
+    game => game.players,
+  )
   game: Game;
 
-  @OneToMany(type => Company, company => company.player)
+  @OneToMany(
+    () => Company,
+    company => company.player,
+  )
   companyPeriods: Company[];
 
   public constructor(props?) {
-    if(props) {
+    if (props) {
       Object.assign(this, props);
     }
   }
 
   public getCompanyByPeriod(period: number) {
-    return this.companyPeriods.find((company) => company.period === period);
+    return this.companyPeriods.find(company => company.period === period);
   }
-
 }

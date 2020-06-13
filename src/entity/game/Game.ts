@@ -1,8 +1,15 @@
-import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
-import {Scenario} from "./Scenario";
-import {GameState} from "./GameState";
-import {Player} from "../player/Player";
-import {GamePeriod} from "./GamePeriod";
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+
+import { Scenario } from './Scenario';
+import { GameState } from './GameState';
+import { Player } from '../player/Player';
+import { GamePeriod } from './GamePeriod';
 import { User } from '../user/User';
 
 @Entity()
@@ -26,7 +33,7 @@ export class Game {
   periodDuration: number;
 
   @Column({
-    type: "enum",
+    type: 'enum',
     enum: GameState,
     default: GameState.PREPARE,
   })
@@ -38,16 +45,22 @@ export class Game {
   @Column({ default: 0 })
   currentPeriod: number;
 
-  @ManyToOne(type => Scenario)
+  @ManyToOne(() => Scenario)
   scenario: Scenario;
 
-  @OneToMany(type => Player, player => player.game)
+  @OneToMany(
+    () => Player,
+    player => player.game,
+  )
   players: Player[];
 
-  @OneToMany(type => GamePeriod, gamePeriod => gamePeriod.game)
+  @OneToMany(
+    () => GamePeriod,
+    gamePeriod => gamePeriod.game,
+  )
   periods: GamePeriod[];
 
-  @ManyToOne(type => User)
+  @ManyToOne(() => User)
   owner: User;
 
   @Column({ type: 'bigint' })
@@ -67,23 +80,28 @@ export class Game {
   }
 
   public getBankruptCount(): number {
-    return this.players.filter((player) => player.isBankrupt).length;
+    return this.players.filter(player => player.isBankrupt).length;
   }
 
   public getActualPlayers(): Player[] {
-    return this.players.filter((player) => !player.isRemoved && !player.isBankrupt);
+    return this.players.filter(
+      player => !player.isRemoved && !player.isBankrupt,
+    );
   }
 
   public getConnectedPlayers(): Player[] {
-    return this.players.filter((player) => player.isConnected);
+    return this.players.filter(player => player.isConnected);
   }
 
   public getExistedPlayers(): Player[] {
-    return this.players.filter((player) => !player.isRemoved);
+    return this.players.filter(player => !player.isRemoved);
   }
 
   public isAllSendSolutions(): boolean {
-    return this.playersSolutionsAmount + this.getBankruptCount() >= this.players.length;
+    return (
+      this.playersSolutionsAmount + this.getBankruptCount() >=
+      this.players.length
+    );
   }
 }
 

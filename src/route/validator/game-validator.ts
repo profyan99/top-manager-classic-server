@@ -1,8 +1,12 @@
-import * as Joi from "joi";
+import * as Joi from 'joi';
 
 const addScenario = Joi.object().keys({
-  name: Joi.string().min(6).required(),
-  description: Joi.string().min(6).required(),
+  name: Joi.string()
+    .min(6)
+    .required(),
+  description: Joi.string()
+    .min(6)
+    .required(),
   loanLimit: Joi.number().required(),
   extraLoanLimit: Joi.number().required(),
   bankRate: Joi.number().required(),
@@ -10,7 +14,9 @@ const addScenario = Joi.object().keys({
 });
 
 const addGame = Joi.object().keys({
-  name: Joi.string().min(6).required(),
+  name: Joi.string()
+    .min(6)
+    .required(),
   maxPlayers: Joi.number().required(),
   tournament: Joi.boolean().default(false),
   scenario: Joi.string().default(null),
@@ -19,7 +25,10 @@ const addGame = Joi.object().keys({
   periodDuration: Joi.number().required(),
 });
 
-const deleteGame = Joi.number().integer().min(0).required();
+const deleteGame = Joi.number()
+  .integer()
+  .min(0)
+  .required();
 
 export default {
   addScenario,

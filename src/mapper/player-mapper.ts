@@ -1,4 +1,4 @@
-import { Player } from "../entity/player/Player";
+import { Player } from '../entity/player/Player';
 
 const mapPreviewByPeriod = (player: Player, period: number) => {
   const company = player.getCompanyByPeriod(period);
@@ -16,7 +16,7 @@ const mapPreviewByPeriod = (player: Player, period: number) => {
       accumulatedProfit: company.accumulatedProfit,
       marketingPart: company.marketingPart,
     },
-  }
+  };
 };
 
 const mapFullByPeriod = (player: Player, period: number) => {
@@ -61,7 +61,7 @@ const mapFullByPeriod = (player: Player, period: number) => {
       investments: company.investments,
       nir: company.nir,
     },
-  }
+  };
 };
 
 export default {

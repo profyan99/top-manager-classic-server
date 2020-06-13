@@ -1,4 +1,3 @@
-
 export const ERRORS = {
   SCENARIO: {
     EXISTED: 'Сценарий с таким именем уже существует',
@@ -16,7 +15,8 @@ export const ERRORS = {
     SOLUTIONS: 'Вы не можете отправлять решения за период',
     INVALID_GAME_PLAYER_ASSOCIATION: 'Вы не играете в этой игре',
     NOT_OWNER: 'Только создатель игры может начать новую игру',
-    RESTART_NOT_ALLOWED: 'Новую игру начать можно только тогда, когда кончится текущая',
+    RESTART_NOT_ALLOWED:
+      'Новую игру начать можно только тогда, когда кончится текущая',
     COMPANY_NAME_ALREADY_SET: 'Имя компании уже задано',
   },
   USER: {

@@ -2,8 +2,8 @@ import * as Hapi from '@hapi/hapi';
 import * as Boom from '@hapi/boom';
 
 import UserService from '../service/user-service';
-import AuthValidator from "./validator/auth-validator";
-import {User} from "../entity/user/User";
+import AuthValidator from './validator/auth-validator';
+import { User } from '../entity/user/User';
 
 interface UserData {
   userName: string;
@@ -12,20 +12,31 @@ interface UserData {
   avatar: string;
 }
 
-const socialAuthHandler = async (request, h, mapUserData: ((data) => UserData)) => {
+const socialAuthHandler = async (
+  request,
+  h,
+  mapUserData: (data) => UserData,
+) => {
   if (!request.auth.isAuthenticated) {
-    return Boom.unauthorized(`Authentication failed due to: ${request.auth.error.message}`);
+    return Boom.unauthorized(
+      `Authentication failed due to: ${request.auth.error.message}`,
+    );
   }
 
   const userProfile = request.auth.credentials['profile'];
   const data: UserData = mapUserData(userProfile);
 
-  const {accessToken, refreshToken} = await UserService.loginUserThrowSocial(request, data);
+  const { accessToken, refreshToken } = await UserService.loginUserThrowSocial(
+    request,
+    data,
+  );
   const startUrlIndex = request.query.state.indexOf('http');
   return h.redirect(
     (request.query.state as string).substring(startUrlIndex) +
-    '?access_token=' + accessToken +
-    '&refresh_token=' + refreshToken
+      '?access_token=' +
+      accessToken +
+      '&refresh_token=' +
+      refreshToken,
   );
 };
 
@@ -33,7 +44,7 @@ const googleAuthRoute: Hapi.ServerRoute = {
   method: ['GET', 'POST'],
   path: '/auth/google',
   async handler(request, h) {
-    return socialAuthHandler(request, h, (userProfile) => ({
+    return socialAuthHandler(request, h, userProfile => ({
       userName: userProfile.displayName,
       email: userProfile.email,
       password: '',
@@ -43,7 +54,7 @@ const googleAuthRoute: Hapi.ServerRoute = {
   options: {
     auth: {
       strategy: 'google',
-      mode: 'try'
+      mode: 'try',
     },
   },
 };
@@ -52,7 +63,7 @@ const vkAuthRoute: Hapi.ServerRoute = {
   method: ['GET', 'POST'],
   path: '/auth/vk',
   async handler(request, h) {
-    return socialAuthHandler(request, h, (userProfile) => ({
+    return socialAuthHandler(request, h, userProfile => ({
       userName: userProfile.displayName,
       email: '',
       password: '',
@@ -62,7 +73,7 @@ const vkAuthRoute: Hapi.ServerRoute = {
   options: {
     auth: {
       strategy: 'VK',
-      mode: 'try'
+      mode: 'try',
     },
   },
 };
@@ -71,15 +82,15 @@ const refreshToken = {
   method: ['POST'],
   path: '/auth/token',
   async handler(request, h) {
-    const {refreshToken} = request.payload;
+    const { refreshToken } = request.payload;
     const user: User = await UserService.getUserByRefreshToken(refreshToken);
-    if(!user) {
+    if (!user) {
       throw Boom.badRequest('Неверный refreshToken.');
     }
     return {
       accessToken: UserService.generateJWT(user),
       refreshToken,
-    }
+    };
   },
   options: {
     auth: false,
@@ -89,8 +100,4 @@ const refreshToken = {
   },
 };
 
-export default [
-  googleAuthRoute,
-  vkAuthRoute,
-  refreshToken,
-];
+export default [googleAuthRoute, vkAuthRoute, refreshToken];
